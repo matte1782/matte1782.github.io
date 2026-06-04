@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Measuring whether my method beats a naive frontier-model call · Matteo Panzeri</title>
+<meta name="description" content="I built an open benchmark to test whether my vulnerability-finding methods beat a naive single call to a frontier model I run. On crypto one did; on authz a static proxy of one did not, and the runtime test recovered the case it missed." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 24px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  tbody tr:first-child td{color:var(--ink); font-weight:500}
+  td .num{font-family:var(--mono)}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+
+  /* mobile: keep the metrics table from forcing horizontal page scroll */
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook · 2026-06-03</p>
+  <h1>Measuring whether my method beats a naive frontier-model call</h1>
+  <p class="dek">On crypto a method won. On authz, a static proxy of it did not, and the runtime test recovered the case it missed. Telling those two apart is the point.</p>
+  <p class="byline">Matteo Panzeri · AI-for-security research</p>
+
+  <h2>TL;DR</h2>
+  <p>Models now find vulnerabilities at enormous scale, so raw discovery is commoditizing. The scarce, durable skill is no longer finding a bug; it is measuring where the model over-claims, and whether a given method actually beats a plain model call. I built a small, open, model-agnostic benchmark and scorer for that question (<code>sota_bench</code>), with a pre-registered loop that re-runs against each new frontier release. The baseline is a single naive call to a frontier model I run; I make no claim against closed systems I cannot run, such as Mythos. On its first runs it told me two different things about two of my methods. On crypto, a forcing-function method beat the model. On a small authorization benchmark, a <strong>static-prompt proxy</strong> of my sibling-guard method did not beat a naive single call. That proxy omits the method's actual mechanism, a runtime check, so the result scopes where the value is <em>not</em> (static skepticism); it does not falsify the method. And when I ran the method's actual runtime mechanism on a small subset, it recovered the exact case static skepticism had missed. The instrument's job is precisely this: to stop me both from over-claiming "my method wins" and from unfairly concluding it fails.</p>
+
+  <h2>Why measurement, not discovery</h2>
+  <p>Anthropic's own published figures make the case. Their autonomous system reported, by their estimate, tens of thousands of candidate findings. The hand-assessed slice was 1,752 high/critical at about 90.6% true-positive. Only a small fraction of disclosed issues reached a CVE or GHSA, and the model matched external-firm severity exactly only 58.7% of the time (94.4% within one band). The throughput bottleneck has moved from detection to <strong>triage, validation, and calibration</strong>, and the published literature on LLM severity calibration and false-positive rates is recent and unconsolidated. That is the gap: not another finder, but an instrument that measures which findings are real, how severe they actually are, and whether a method earns its keep against a baseline that improves every release.</p>
+
+  <h2>The harness</h2>
+  <p><code>sota_bench</code> is a stdlib-only Python package with a <strong>non-LLM scorer</strong> (no model-as-judge, which is too fragile for a validation layer), reusing established metrics so results are comparable rather than bespoke:</p>
+  <ul>
+    <li>detection: precision, recall, false-positive-rate, OWASP-Benchmark-style TP/FP/TN/FN and Youden's J, PrimeVul's VD-S (false-negative rate at a fixed false-positive cap), and pairwise positive/negative accuracy;</li>
+    <li>severity: a <strong>signed, both-ways calibration error</strong> versus an honest CVSS v3.1 band, reporting inflation and deflation separately rather than as one absolute number;</li>
+    <li>a labeled positive/negative corpus pinned to <code>repo@commit</code>, with each negative carrying the runtime check that exonerates it;</li>
+    <li>a <strong>SOTA-validation loop</strong>: pin a named naive-single-model baseline, re-run on each frontier release, and publish the signed "method minus naive" delta. The corpus is dated and hand-adjudicated, which is the part a newer model cannot retroactively author.</li>
+  </ul>
+  <p>The design borrows freely: discover-then-validate, patched-counterpart negatives, the "inconsistency equals bug" oracle, and baseline pinning are all prior art. The contribution is the combination, the two substrates, and the loop.</p>
+
+  <h2>Experiment 1: decode-completeness (crypto). The method helped.</h2>
+  <p>On a finished, public DeFi audit contest (Monetrix, where the real finding was independently found by dozens of auditors), a naive multi-axis blind pass over the accounting code <strong>reached the exact decisive site, recovered the external precompile's full field layout, and then confidently concluded there was no bug</strong> (it pursued a plausible-but-wrong alternative). A method-armed pass that does one forcing-function step, "for every external data source, enumerate every field of its real schema and flag any value-reducing field the decoder drops," re-derived the real finding cleanly. In the pre-registered baseline run the split was <strong>0/3 naive versus 2/2 method</strong> on the held-out medium-severity bug (an earlier three-reviewer calibration independently re-derived it 3/3), with the other five external reads correctly exonerated. Here the method beat the model. The gap was not knowledge, the naive pass had the data; it was the discipline of refusing "the decoded field is correct" until completeness is checked.</p>
+
+  <h2>Experiment 2: agent tool-dispatch authorization-confusion. A static proxy of the method lost.</h2>
+  <p><code>authz_v1</code> is a labeled set in the class where an application enforces an authorization guard on its REST path but omits it on the agent or tool-calling dispatch path (CWE-862/863, confused-deputy). The positives are coordinated disclosures still under embargo, so they are withheld from this public version and will be added once their advisories publish; the negatives are by-design-secure agent surfaces, including two near-miss cases that look flaggable statically but are cleared by a runtime check. I ran a blind, <strong>code-only</strong> comparison (each pass reads only the source at <code>repo@commit</code>, forbidden from looking up any advisory): a naive single call versus a call armed with my sibling-guard / runtime-gating method.</p>
+  <table>
+    <thead><tr><th>pass</th><th>recall</th><th>precision</th><th>FP-rate</th><th>Youden J</th></tr></thead>
+    <tbody>
+      <tr><td>naive single call</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">0.00</td><td class="num">1.00</td></tr>
+      <tr><td>method-armed (static)</td><td class="num">0.80</td><td class="num">0.80</td><td class="num">0.10</td><td class="num">0.70</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Rates are over the full labeled set. The public <code>sota_bench</code> repo currently ships only the by-design-secure negatives; the positive items and two secure twins are withheld pending coordinated disclosure, so these exact rates are not reproducible from the public slice yet.</p>
+  <p>The static proxy was strictly worse. Read statically, its extra skepticism <strong>talked itself out of a real finding</strong> (one positive case, a false negative) and <strong>over-flagged a by-design shared-capability surface</strong> (AnythingLLM, a false positive). The naive frontier model is already strong at spotting a missing authorization check from code; bolting "be more skeptical, look for the sibling guard" onto a static read did not help, it hurt. Crucially, this is the method <strong>stripped to a static prompt</strong>: its actual discriminator is a runtime check (is the caller denied on the sibling path yet still reaching the action via dispatch?), and that step is what cleared these same by-design cases and confirmed the real ones when the advisories were originally filed. A static read cannot run it, so what underperformed here is static skepticism, not the method.</p>
+
+  <h2>Experiment 2b: the runtime oracle, the fair test of the method</h2>
+  <p>The static proxy is not the method; the method's discriminator is the runtime check, so I ran it. Re-running the original dynamic PoC harnesses against pinned affected versions, with fresh CSPRNG sentinels minted during the run, the runtime method matched ground truth on <strong>4 of 4</strong> findings in the subset I could stand up, and its one decisive move was the exact case the static proxy got wrong. On that case the static proxy had cleared a real vuln to "secure" because the agent route did carry an authorization decorator, but it was scoped too narrowly, so the dispatch only <em>looked</em> gated. The runtime oracle flipped it back to <strong>vuln</strong>: a normal team member, denied on the REST entitlement path, nonetheless reached owner-private content through the dispatch sink, returning two freshly-minted sentinels with no authorization denial. A second case stayed <strong>vuln</strong> on a live re-run, and the runtime oracle correctly <strong>cleared</strong> a by-design-secure runtime path (the caller identity is bound at dispatch), so it did not over-flag. The specific targets are coordinated disclosures still under embargo, named here only once their advisories publish. This is the method's real mechanism recovering precisely what static skepticism missed.</p>
+  <p>Honest coverage: only 2 of the 4 were truly live-reran this session; the other two verdicts rest on recorded evidence (a live re-run was blocked by disk pressure and a locked compose directory, with no new sentinel minted). And this subset does <strong>not</strong> include the static proxy's other error, the false positive on a by-design AnythingLLM surface, so the runtime method's false-positive discrimination is only partially shown.</p>
+
+  <h2>What the two results mean together</h2>
+  <p>The value of a method is <strong>substrate-specific and stage-specific</strong>. Decode-completeness, a forcing function that makes the model do work it otherwise skips, helped. Authorization sibling-guard reasoning, applied as static skepticism, did not beat a model that already reads authorization well. That run tested the method as a <strong>static prompt</strong>; its actual designed edge is a <strong>runtime check</strong>, which I ran separately in Experiment 2b, and on a small subset it recovered exactly the case static skepticism missed. The honest reading: my authz method has no demonstrated edge over a naive call <strong>for static detection</strong>, and I would be wrong to claim otherwise; its value is the runtime verifier, which on a tiny subset corrected the static proxy's one error. I would be equally wrong to call this the method <em>failing</em>, because the experiment never ran the method's mechanism. The precise, defensible claim is narrow: static skepticism without a runtime verifier is not an edge; whether the runtime verifier is one is the next experiment.</p>
+
+  <h2>The actual contribution</h2>
+  <p>The point is not which method won. The point is that the measurement let me <strong>find out</strong>, and scope the claim precisely. Instead of over-claiming "my method wins" or unfairly concluding it fails, it told me where a method's value lives: a forcing-function helped; static skepticism without a runtime verifier did not. It also flagged that my authz method's actual mechanism is still untested. That instrument, an open, model-agnostic benchmark with a non-LLM scorer and a re-run-every-release delta loop, gets more useful as models improve, because someone has to measure whether and where each new model is actually better, and whether yesterday's method still earns its place. That is the durable, compounding asset. The methods are disposable; the yardstick is not.</p>
+
+  <h2>Limitations (read these)</h2>
+  <ul class="limits">
+    <li>A single run, a single model, static code only, over a small labeled set whose positive items are withheld pending coordinated disclosure. This shows a forcing-function method helped on one substrate while a <em>static proxy</em> of the sibling-guard method underperformed on the other; it is not a calibrated rate.</li>
+    <li>The runtime fp-killer was exercised (Experiment 2b) but only on a 4-finding subset, of which 2 were live re-runs and 2 rest on recorded evidence. It corrected the static proxy's one false negative and cleared a by-design-secure path, but the subset excludes the AnythingLLM false positive, so the runtime method's FP-discrimination is only partially shown.</li>
+    <li>The decode-completeness "no prior benchmark" claim is low-confidence pending a dedicated null-search.</li>
+    <li>Experiment 1 is a single retro-find of a <em>known</em> contest bug (independently found by dozens of auditors): it shows the method recovers a finding the naive pass missed, not that it first-finds novel bugs.</li>
+    <li>The corpus is small and hand-adjudicated by one researcher; that is the durability mechanism and also its current ceiling.</li>
+  </ul>
+
+  <h2>Reproducibility</h2>
+  <p><code>sota_bench</code> is open (Apache-2.0): the labeled corpus with pinned commits, the non-LLM scorer, the deterministic CVSS-recompute and triad checkers, the loop, and the pinned 2026-06-03 baseline. Re-run the loop against the next frontier model and the delta updates itself. <a href="https://github.com/matte1782/sota-bench">github.com/matte1782/sota-bench</a></p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Anthropic, Project Glasswing / Coordinated Vulnerability Disclosure dashboard (red.anthropic.com/2026/cvd/): the discovery-volume estimates, the hand-assessed true-positive slice, the disclosure-to-CVE fraction, and the 58.7% / 94.4% severity-agreement figures.</li>
+    <li>Google Project Zero, "From Naptime to Big Sleep" (projectzero.google, 2024): autonomous discovery on live targets; benchmark abandonment.</li>
+    <li>PrimeVul: a vulnerability-detection benchmark with the VD-S metric and pairwise vulnerable/benign evaluation (arXiv:2403.18624).</li>
+    <li>OWASP Benchmark: TP/FP/TN/FN scoring and the Youden index for SAST evaluation (owasp.org/www-project-benchmark).</li>
+    <li>CyberGym: real-world AI cyber-capability evaluation at scale; execution-grounded pass criterion (arXiv:2506.02548).</li>
+    <li>ZeroPath, "Toward actual SAST benchmarks": positive plus patched-counterpart (exonerated-negative) design.</li>
+    <li>FIRST, CVSS v3.1 Specification (first.org/cvss/v3-1/specification-document): the base-score formula and roundup used by the deterministic recompute check.</li>
+    <li>"Security in LLM-as-a-Judge" SoK (arXiv:2603.29403): why a validation/calibration layer must not be model-judged.</li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782/sota-bench">sota_bench</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;·&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>

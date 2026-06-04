@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matteo Panzeri · AI-for-security researcher</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="description" content="Matteo Panzeri · AI-for-security researcher. Measuring where AI over-claims, and building the model-agnostic harness that proves it. Specialization: agent tool-dispatch authorization-confusion." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16); --signal-line:rgba(224,164,88,.45);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:17px; line-height:1.6; letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  /* faint warm grain + a single hairline measurement grid, static (atmosphere, not motion) */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 18%,#000 0%,transparent 72%);
+  }
+  .wrap{position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding:0 28px}
+  a{color:inherit; text-decoration:none}
+  ::selection{background:var(--signal-soft); color:var(--ink)}
+
+  /* top bar */
+  header{position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+    background:linear-gradient(var(--bg),rgba(18,17,15,.72)); border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:var(--maxw); margin:0 auto}
+  .who{font-family:var(--mono); font-size:13px; letter-spacing:.02em}
+  .who b{color:var(--ink); font-weight:500}
+  .who .slash{color:var(--signal)}
+  nav{display:flex; gap:22px; font-family:var(--mono); font-size:12.5px; color:var(--dim)}
+  nav a{position:relative; transition:color .2s}
+  nav a:hover{color:var(--ink)}
+  nav a::after{content:""; position:absolute; left:0; bottom:-5px; height:1px; width:0; background:var(--signal); transition:width .25s ease}
+  nav a:hover::after{width:100%}
+
+  /* hero */
+  .hero{padding:88px 0 60px}
+  .kicker{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 22px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(38px,6vw,68px); line-height:1.04; letter-spacing:-.015em; margin:0 0 24px; max-width:16ch}
+  h1 em{font-style:italic; color:var(--signal)}
+  .lede{font-size:clamp(17px,2.2vw,20px); color:var(--dim); max-width:54ch; margin:0 0 14px}
+  .lede b{color:var(--ink); font-weight:500}
+
+  /* the one animated motif: terminal / instrument readout */
+  .instrument{margin:46px 0 8px; border:1px solid var(--line); border-radius:10px; background:
+    linear-gradient(180deg,rgba(224,164,88,.03),transparent 40%),var(--panel); overflow:hidden;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
+  .inst-bar{display:flex; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line2); font-family:var(--mono); font-size:11.5px; color:var(--faint)}
+  .dot{width:9px; height:9px; border-radius:50%; background:#2a2722; border:1px solid var(--line)}
+  .inst-bar .label{margin-left:auto; letter-spacing:.08em}
+  .inst-body{display:grid; grid-template-columns:1.5fr .9fr; gap:0}
+  @media(max-width:720px){.inst-body{grid-template-columns:1fr}}
+  .readout{padding:20px 20px 22px; font-family:var(--mono); font-size:13.5px; line-height:1.85; min-height:228px}
+  .readout .ln{opacity:0; transition:opacity .45s ease}
+  .readout .prompt{color:var(--signal)}
+  .readout .mut{color:var(--faint)}
+  .readout .ok{color:var(--ok)}
+  .readout .hi{color:var(--signal)}
+  .readout .em{color:var(--ink)}
+  .scope{border-left:1px solid var(--line2); padding:18px 18px 16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(180deg,transparent,rgba(0,0,0,.18))}
+  .scope .cap{font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.1em; text-transform:uppercase}
+  .scope svg{width:100%; height:120px; display:block}
+  .scope .trace{fill:none; stroke:var(--signal); stroke-width:1.6; stroke-linecap:round;
+    stroke-dasharray:1; stroke-dashoffset:1}
+  .scope .grid{stroke:var(--line2); stroke-width:1}
+  .scope .flip{font-family:var(--mono); font-size:12px; color:var(--dim)}
+  .scope .flip b{color:var(--signal); font-weight:500}
+
+  /* sections */
+  section{padding:54px 0; border-top:1px solid var(--line)}
+  .sec-h{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 26px; display:flex; align-items:center; gap:12px}
+  .sec-h::before{content:""; width:22px; height:1px; background:var(--signal)}
+  .prose{max-width:62ch; color:var(--dim); font-size:18px}
+  .prose p{margin:0 0 18px}
+  .prose b,.prose strong{color:var(--ink); font-weight:500}
+  .prose .term{font-family:var(--mono); font-size:.92em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+
+  /* disclosures list */
+  .rows{display:flex; flex-direction:column; border-top:1px solid var(--line2)}
+  .row{display:grid; grid-template-columns:118px 1fr auto; gap:18px; align-items:baseline; padding:18px 4px; border-bottom:1px solid var(--line2); transition:background .2s}
+  .row:hover{background:rgba(224,164,88,.035)}
+  @media(max-width:680px){.row{grid-template-columns:1fr; gap:6px}}
+  .row .sev{font-family:var(--mono); font-size:12px; color:var(--signal); white-space:nowrap}
+  .row .sev .score{color:var(--ink)}
+  .row .name{font-family:var(--serif); font-size:21px; font-weight:500; letter-spacing:-.01em}
+  .row .desc{display:block; font-family:var(--sans); font-size:14.5px; color:var(--dim); margin-top:3px; font-weight:400}
+  .row .id{font-family:var(--mono); font-size:12px; color:var(--faint); justify-self:end; white-space:nowrap}
+  .row .id .arrow{color:var(--signal); opacity:0; transition:opacity .2s}
+  .row:hover .id .arrow{opacity:1}
+
+  /* cards */
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  @media(max-width:680px){.cards{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line); border-radius:10px; padding:22px; background:var(--panel); transition:border-color .2s,transform .2s}
+  .card:hover{border-color:var(--signal-line); transform:translateY(-2px)}
+  .card .ct{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase}
+  .card h3{font-family:var(--serif); font-weight:500; font-size:23px; margin:10px 0 8px; letter-spacing:-.01em}
+  .card p{margin:0; color:var(--dim); font-size:14.5px}
+  .card .go{font-family:var(--mono); font-size:12px; color:var(--signal); margin-top:14px; display:inline-block}
+
+  footer{border-top:1px solid var(--line); padding:40px 0 64px; color:var(--faint); font-size:14px}
+  footer .disc{font-family:var(--mono); font-size:12.5px; color:var(--dim); max-width:70ch; line-height:1.8}
+  footer .meta{margin-top:20px; display:flex; gap:20px; font-family:var(--mono); font-size:12.5px}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+  .note{margin-top:14px; font-size:11.5px; color:var(--faint)}
+
+  /* reveal-on-scroll: JS adds .pre (start hidden) then .in (reveal). Default state is visible,
+     so content is never stranded on any browser even if JS or the observer fails. */
+  @media (prefers-reduced-motion:no-preference){
+    .reveal.pre{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s cubic-bezier(.22,.61,.36,1)}
+    .reveal.pre.in{opacity:1; transform:none}
+  }
+
+  /* mobile: prevent horizontal overflow (header nav + footer contact row) */
+  @media (max-width:600px){
+    .wrap{padding:0 18px}
+    .bar{padding:14px 18px; flex-wrap:wrap; gap:6px 14px}
+    nav{gap:16px; flex-wrap:wrap}
+    footer .meta{flex-wrap:wrap; gap:10px 18px}
+    footer .meta a, footer a{overflow-wrap:anywhere}
+  }
+</style>
+<noscript><style>.readout .ln{opacity:1}.reveal{opacity:1;transform:none}.scope .trace{stroke-dashoffset:0}</style></noscript>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="who"><b>Matteo Panzeri</b><span class="slash">/</span><span style="color:var(--dim)">AI-for-security</span></div>
+    <nav>
+      <a href="#thesis">thesis</a>
+      <a href="#disclosures">disclosures</a>
+      <a href="#tooling">tooling</a>
+      <a href="#writing">writing</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero" style="border-top:none">
+    <p class="kicker">AI-for-security &middot; measurement first</p>
+    <h1>Measuring where AI <em>over-claims</em>, and building the harness that proves it.</h1>
+    <p class="lede">Models find vulnerabilities at scale now, so raw discovery is cheap. The hard part is <b>validation and calibration</b>: which findings are real, how severe they actually are, and whether a method beats a plain model call.</p>
+    <p class="lede">I work one class deeply, <b>agent tool-dispatch authorization-confusion</b>, and build the model-agnostic harness that measures it. The baseline I test against is a single naive call to a current frontier model I run; I make no claim against closed systems I cannot run.</p>
+
+    <div class="instrument" id="inst" aria-label="Live readout of the SOTA-validation loop result">
+      <div class="inst-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="label">sota_bench &middot; SOTA-validation loop</span>
+      </div>
+      <div class="inst-body">
+        <div class="readout" id="readout">
+          <div class="ln"><span class="prompt">$</span> sota_loop --naive --method --target authz_v1</div>
+          <div class="ln"><span class="mut">pinned baseline ............................ ok</span></div>
+          <div class="ln"><span class="mut">naive   (single frontier call)</span> .... reached site, <span class="em">dismissed bug</span></div>
+          <div class="ln"><span class="mut">method  (runtime oracle)</span> ......... a finding <span class="ok">secure &rarr; VULN &check;</span></div>
+          <div class="ln"><span class="hi">delta</span>: method recovered 1 finding static skepticism missed</div>
+          <div class="ln"><span class="mut">&gt; the measurement is the moat. the methods are disposable.</span></div>
+        </div>
+        <div class="scope">
+          <span class="cap">method &minus; naive &middot; runtime</span>
+          <svg viewBox="0 0 220 120" preserveAspectRatio="none" aria-hidden="true">
+            <line class="grid" x1="0" y1="60" x2="220" y2="60"></line>
+            <line class="grid" x1="0" y1="30" x2="220" y2="30"></line>
+            <line class="grid" x1="0" y1="90" x2="220" y2="90"></line>
+            <path class="trace" id="trace" d="M0,78 L34,76 L60,80 L92,79 L118,80 L118,30 L150,31 L186,30 L220,30"></path>
+          </svg>
+          <span class="flip">a finding &middot; static: <span style="color:var(--dim)">secure</span> &rarr; runtime: <b>VULN</b> &check;</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="thesis">
+    <h2 class="sec-h">The thesis</h2>
+    <div class="prose reveal">
+      <p>Models find candidate bugs cheaply. They do not triage them, calibrate severity, or notice where they are confidently wrong. That gap widens as models improve: someone still has to measure whether a new model is actually better, and whether a given method still earns its place.</p>
+      <p><span class="term">sota_bench</span> is an open, model-agnostic benchmark with a non-LLM scorer and a pinned baseline: one naive call to a frontier model I run (no access to closed systems like Mythos), re-scored on each release. Its first run was useful and uncomfortable: a static version of my own method did <em>not</em> beat that naive call. The method's value is the runtime check: on a live re-run it recovered the exact finding static skepticism had cleared. A benchmark that corrects you is doing its job.</p>
+    </div>
+  </section>
+
+  <section id="disclosures">
+    <h2 class="sec-h">Selected disclosures</h2>
+    <div class="rows">
+      <a class="row" href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj" target="_blank" rel="noopener">
+        <span class="sev">High <span class="score">8.7</span></span>
+        <span><span class="name">dex</span><span class="desc">Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged.</span></span>
+        <span class="id">GHSA-7qjx <span class="arrow">&#8599;</span></span>
+      </a>
+      <a class="row" href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">
+        <span class="sev">High <span class="score">7.3</span></span>
+        <span><span class="name">Open WebUI</span><span class="desc">Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.</span></span>
+        <span class="id">GHSA-3wgj <span class="arrow">&#8599;</span></span>
+      </a>
+      <a class="row" href="https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw" target="_blank" rel="noopener">
+        <span class="sev">Mod <span class="score">4.4</span></span>
+        <span><span class="name">Outline</span><span class="desc">Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890.</span></span>
+        <span class="id">CVE-2026-43890 <span class="arrow">&#8599;</span></span>
+      </a>
+      <a class="row" href="https://github.com/advisories/GHSA-r48c-v28r-pf6v" target="_blank" rel="noopener">
+        <span class="sev">Mod <span class="score">6.3</span></span>
+        <span><span class="name">MCP Registry</span><span class="desc">Unauthenticated SSRF bypassing the private-address allowlist via 6to4 / NAT64 (CWE-918). CVE-2026-44430.</span></span>
+        <span class="id">CVE-2026-44430 <span class="arrow">&#8599;</span></span>
+      </a>
+      <a class="row" href="https://github.com/getkirby/kirby/security/advisories/GHSA-39vq-49qm-r2mc" target="_blank" rel="noopener">
+        <span class="sev">Mod <span class="score">5.3</span></span>
+        <span><span class="name">Kirby</span><span class="desc">Content locks disclose IDs and emails of otherwise-inaccessible users (CWE-862). CVE-2026-45334.</span></span>
+        <span class="id">CVE-2026-45334 <span class="arrow">&#8599;</span></span>
+      </a>
+    </div>
+    <p class="note">Severities as the official advisory rates them. Additional findings are in private coordination and are not listed until disclosed.</p>
+  </section>
+
+  <section id="tooling">
+    <h2 class="sec-h">Open tooling &amp; method</h2>
+    <div class="cards">
+      <a class="card reveal" href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">
+        <span class="ct">benchmark &middot; scorer &middot; loop</span>
+        <h3>sota_bench</h3>
+        <p>A model-agnostic benchmark for the validation/calibration layer: a labeled positive/negative corpus, a deterministic non-LLM scorer (recall · precision · FP-rate · both-ways CVSS calibration), and the SOTA-validation delta loop.</p>
+        <span class="go">github.com/matte1782/sota-bench &#8599;</span>
+      </a>
+      <div class="card reveal">
+        <span class="ct">named specialization</span>
+        <h3>Authorization-confusion at the dispatch layer</h3>
+        <p>When an app enforces a guard on its REST path but omits it on the agent / tool-calling path, a low-privilege caller becomes a confused deputy (CWE-862/863). The detection method is a sibling-guard sweep verified by a non-fabricatable runtime oracle.</p>
+        <a class="go" href="#writing" style="color:var(--signal); text-decoration:none">writeup &#8595;</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="writing">
+    <h2 class="sec-h">Writing</h2>
+    <a class="row reveal" href="./writing/measurement-first/" style="grid-template-columns:118px 1fr auto">
+      <span class="sev">2026 &middot; 06</span>
+      <span><span class="name">Measuring whether my method beats a naive frontier-model call</span><span class="desc">I built a benchmark to check it. On crypto a method won; on authz a static proxy of it didn't, and the runtime test recovered the case it missed. Telling those apart is the point.</span></span>
+      <span class="id">read <span class="arrow">&rarr;</span></span>
+    </a>
+  </section>
+
+  <section id="building">
+    <h2 class="sec-h">Also building &middot; a broader AI portfolio</h2>
+    <p class="prose" style="margin-bottom:26px; font-size:17px">A BSc-AI student (University of Pavia) putting the most serious work into AI-security now, while building broadly across AI. A few of the more-developed threads:</p>
+    <div class="cards">
+      <div class="card"><span class="ct">ml research</span><h3>Representation &amp; continual learning</h3><p>A continual-learning study on replay dynamics and phase transitions in fine-tuning, BinaryLLM (1-bit embeddings), and a neuro-symbolic Z3 prototype written up as an honest negative result.</p></div>
+      <div class="card"><span class="ct">high-performance systems</span><h3>Vector search &amp; LLM caches</h3><p>edgevec, a Rust vector-search engine for browser and edge. Plus a 256-bit binary semantic cache for LLMs (Rust core, about 10&nbsp;ms index load at 1M entries).</p></div>
+      <div class="card"><span class="ct">embodied AI</span><h3>Open-source robotics</h3><p>Open Duck Mini, an experimental open-source 12-DOF quadruped with IMU and servo firmware, plus a 3D-printed SO-ARM manipulator.</p></div>
+    </div>
+    <p class="prose" style="margin-top:24px; font-size:15px; color:var(--dim)">Production work: I build and maintain <a href="https://atala.it" target="_blank" rel="noopener" style="color:var(--signal)">atala.it</a> and <a href="https://whistlebikes.com" target="_blank" rel="noopener" style="color:var(--signal)">whistlebikes.com</a> for Atala, a historic Italian bicycle manufacturer.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p class="disc">Coordinated disclosure with A-list OSS teams: confirmed bidirectional relationships with open-webui, dexidp/dex, and getkirby/kirby (merged co-authored fix-PRs and/or a published advisory with named credit), plus further engagements in progress. Honest severity, both ways; no claim ships without a non-fabricatable proof.</p>
+  <div class="meta">
+    <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+    <a href="mailto:matteo.panzeri01@universitadipavia.it">matteo.panzeri01@universitadipavia.it</a>
+    <a href="https://github.com/matte1782" target="_blank" rel="noopener">github.com/matte1782 &#8599;</a>
+  </div>
+  <p class="note">Matteo Panzeri &middot; AI-for-security researcher &middot; built static, no trackers.</p>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- terminal / instrument readout: the one animated motif ----
+  var ro = document.getElementById('readout');
+  var lns = ro ? Array.prototype.slice.call(ro.querySelectorAll('.ln')) : [];
+  function reveal(stagger){
+    lns.forEach(function(el,i){
+      if(!stagger){ el.style.opacity='1'; return; }
+      setTimeout(function(){ el.style.opacity='1'; }, 120 + i*480);
+    });
+  }
+  // draw the scope trace
+  var trace=document.getElementById('trace');
+  function drawTrace(){
+    if(!trace) return; var len=trace.getTotalLength();
+    trace.style.strokeDasharray=len; trace.style.strokeDashoffset=reduce?0:len;
+    if(reduce) return;
+    trace.style.transition='stroke-dashoffset 1.6s cubic-bezier(.22,.61,.36,1) .5s';
+    requestAnimationFrame(function(){ trace.style.strokeDashoffset=0; });
+  }
+  var played=false;
+  function start(){ if(played) return; played=true; if(reduce){reveal(false);drawTrace();return;} reveal(true); drawTrace(); }
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){start();io.disconnect();}});},{threshold:.4});
+    io.observe(document.getElementById('inst'));
+  } else { start(); }
+
+  // ---- gentle count-up on the severity scores (reduced-motion -> instant) ----
+  if(!reduce && 'IntersectionObserver' in window){
+    var seen=false;
+    var io2=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting && !seen){ seen=true;
+          document.querySelectorAll('.row .score').forEach(function(s){
+            var target=parseFloat(s.textContent); if(isNaN(target)) return;
+            var t0=null;
+            function step(ts){ if(!t0)t0=ts; var p=Math.min((ts-t0)/700,1);
+              s.textContent=(target*p).toFixed(1); if(p<1)requestAnimationFrame(step); else s.textContent=target.toFixed(1); }
+            s.textContent='0.0'; requestAnimationFrame(step);
+          });
+          io2.disconnect();
+        }
+      });
+    },{threshold:.3});
+    io2.observe(document.getElementById('disclosures'));
+  }
+
+  // ---- reveal-on-scroll (default-visible; .pre is added only when we can observe + reveal) ----
+  if(!reduce && 'IntersectionObserver' in window){
+    var rv=Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+    var io3=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io3.unobserve(e.target); } });
+    },{rootMargin:'0px 0px -6% 0px'});
+    rv.forEach(function(el){ el.classList.add('pre'); io3.observe(el); });
+    setTimeout(function(){ rv.forEach(function(el){ el.classList.add('in'); }); }, 2600); // safety: never leave content hidden
+  }
+
+})();
+</script>
+</body>
+</html>
