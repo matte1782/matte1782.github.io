@@ -3,6 +3,26 @@
   "_embargo_rule": "proof.published must be backed by a LIVE state check at publish time (repo security-advisory state==published, OR presence in the GitHub global advisory DB), NEVER a stored string. Findings still in private coordination are intentionally NOT listed here until their advisory or credit actually publishes.",
   "findings": [
     {
+      "name": "GitHub MCP Server",
+      "severity_label": "Mod",
+      "score": "6.0",
+      "desc": "Lockdown-mode RepoAccessCache singleton in HTTP mode binds every user's repo-access checks to the first authenticated user's GraphQL token: cross-user authorization confusion (CWE-284). CVE-2026-48529. Credited reporter (co-reported). Patched 1.1.2.",
+      "id_label": "CVE-2026-48529",
+      "url": "https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "github/github-mcp-server",
+        "ghsa": "GHSA-pjp5-fpmr-3349",
+        "cve": "CVE-2026-48529",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-09",
+        "note": "Repo advisory published 2026-06-09 with CVE-2026-48529 (CVSS 6.0, CWE-284 Improper Access Control). Not yet synced to the GitHub global advisory DB (lag, like Outline). matte1782 is a credited reporter, co-reported with hewei-gikaku (not sole discoverer). Citation is the public repo advisory URL (anonymous HTTP 200)."
+      }
+    },
+    {
       "name": "dex",
       "severity_label": "High",
       "score": "8.7",
