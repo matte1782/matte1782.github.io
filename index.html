@@ -113,6 +113,19 @@
   .card h3{font-family:var(--serif); font-weight:500; font-size:23px; margin:10px 0 8px; letter-spacing:-.01em}
   .card p{margin:0; color:var(--dim); font-size:14.5px}
   .card .go{font-family:var(--mono); font-size:12px; color:var(--signal); margin-top:14px; display:inline-block}
+  .card.span2{grid-column:1 / -1}
+
+  /* measurement pipeline: only-what-runs; static, accessible, no JS, no motion required */
+  .flowline{font-family:var(--mono); font-size:12.5px; color:var(--faint); letter-spacing:.04em; margin:22px 0 4px}
+  .flowline b{color:var(--signal); font-weight:500}
+  .pipeline{display:flex; flex-wrap:wrap; gap:10px 12px; list-style:none; padding:0; margin:6px 0 14px; counter-reset:p}
+  .pipeline li{flex:1 1 150px; min-width:146px; border:1px solid var(--line); border-radius:9px; background:var(--panel); padding:12px 14px}
+  .pipeline .pn{display:block; font-family:var(--mono); font-size:13px; color:var(--ink); letter-spacing:.01em}
+  .pipeline .pn::before{counter-increment:p; content:counter(p); color:var(--faint); margin-right:8px; font-size:11px}
+  .pipeline .pd{display:block; margin-top:5px; font-size:12.5px; color:var(--dim); line-height:1.5}
+  .pipeline li.gate{border-color:var(--signal-line); background:linear-gradient(180deg,var(--signal-soft),var(--panel))}
+  .pipeline li.gate .pn{color:var(--signal)} .pipeline li.gate .pn::before{color:var(--signal)}
+  .pipeline code{font-family:var(--mono); font-size:.9em; color:var(--ink); background:var(--bg2); padding:0 4px; border-radius:3px; border:1px solid var(--line2)}
 
   footer{border-top:1px solid var(--line); padding:40px 0 64px; color:var(--faint); font-size:14px}
   footer .disc{font-family:var(--mono); font-size:12.5px; color:var(--dim); max-width:70ch; line-height:1.8}
@@ -194,6 +207,23 @@
     </div>
   </section>
 
+  <section id="measurement">
+    <h2 class="sec-h">The measurement, end to end</h2>
+    <div class="prose reveal" style="margin-bottom:2px">
+      <p>Every number is a deterministic function of labels, content-addressed so it cannot be quietly fudged, and the loop <strong>refuses to compare two runs it cannot honestly compare</strong>. That refusal is what keeps the signed delta trustworthy as models change.</p>
+    </div>
+    <p class="flowline" aria-hidden="true">corpus &rarr; hash &rarr; scorer &rarr; <b>gate</b> &rarr; power &rarr; signed &Delta;</p>
+    <ol class="pipeline reveal" aria-label="The sota_bench measurement pipeline, in order">
+      <li><span class="pn">corpus</span><span class="pd">labeled positives and exonerated negatives, each pinned to <code>repo@sha</code></span></li>
+      <li><span class="pn">dataset_hash</span><span class="pd">SHA-256 content address of the exact scored corpus</span></li>
+      <li><span class="pn">scorer.py</span><span class="pd">deterministic, no LLM-as-judge</span></li>
+      <li class="gate"><span class="pn">comparability gate</span><span class="pd">refuses to diff two runs unless <code>dataset_hash</code> and <code>scorer_version</code> both match</span></li>
+      <li><span class="pn">McNemar + power</span><span class="pd">under 10 discordant pairs &rarr; UNDERPOWERED: no significance claimed</span></li>
+      <li><span class="pn">signed &Delta;</span><span class="pd">method &minus; naive, published as-is</span></li>
+    </ol>
+    <p class="note">Drawn from what runs today in the open repo (<code style="font-family:var(--mono)">loop.py &middot; scorer.py &middot; admission.py &middot; stats.py</code>). Parts still on the roadmap are not drawn.</p>
+  </section>
+
   <section id="disclosures">
     <h2 class="sec-h">Selected disclosures</h2>
     <div class="rows">
@@ -243,6 +273,12 @@
         <p>When an app enforces a guard on its REST path but omits it on the agent / tool-calling path, a low-privilege caller becomes a confused deputy (CWE-862/863). The detection method is a sibling-guard sweep verified by a non-fabricatable runtime oracle.</p>
         <a class="go" href="#writing" style="color:var(--signal); text-decoration:none">writeup &#8595;</a>
       </div>
+      <a class="card reveal span2" href="https://github.com/matte1782/sota-bench/tree/main/seeds/decode_v1" target="_blank" rel="noopener">
+        <span class="ct">active research &middot; a second class</span>
+        <h3>Decode-completeness</h3>
+        <p>A decoder that silently drops a <em>value-reducing</em> field (a debt leg, a scaling exponent, an authorization-relevant field) so a naive read reaches the site and rules the bug out. Early, honest signal across <b>3 public findings</b> (a DeFi accountant, a Solana paymaster, an oracle): the method out-detects a naive call on the <em>subtle</em> ones, while a deliberately-included eyeball-able control shows where it does not. <b>n=3 &middot; underpowered &middot; recall-only &middot; not yet a calibrated rate.</b></p>
+        <span class="go">growing toward a measured rate &#8599;</span>
+      </a>
     </div>
   </section>
 
