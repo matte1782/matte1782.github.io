@@ -6,9 +6,7 @@
 <title>Matteo Panzeri · AI-for-security researcher</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <meta name="description" content="Matteo Panzeri · AI-for-security researcher. Measuring where AI over-claims, and building the model-agnostic harness that proves it. Specialization: agent tool-dispatch authorization-confusion." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/fonts/fonts.css" />
 <link rel="stylesheet" href="assets/asciinema-player.css" />
 <style>
   :root{
@@ -184,6 +182,7 @@
           <div class="ln"><span class="mut">naive   (single frontier call)</span> .... reached site, <span class="em">dismissed bug</span></div>
           <div class="ln"><span class="mut">method  (runtime oracle)</span> ......... a finding <span class="ok">secure &rarr; VULN &check;</span></div>
           <div class="ln"><span class="hi">delta</span>: method recovered 1 finding static skepticism missed</div>
+          <div class="ln"><span class="mut">&gt; 4-item runtime re-run; on the full 16-item baseline the static method <span class="em">lost</span> (&Delta; &minus;0.167, below)</span></div>
           <div class="ln"><span class="mut">&gt; the measurement is the moat. the methods are disposable.</span></div>
         </div>
         <div class="scope">
@@ -231,18 +230,18 @@
     <div class="cast-wrap reveal" style="margin-top:8px">
       <div id="cast-player" aria-label="A real recording of sota_bench: naive out-scores method, the comparability gate refuses an incomparable diff, and the n=3 decode seed is rejected as underpowered"></div>
       <noscript>
-        <div class="instrument" aria-label="sota_bench scorer output (static fallback)">
+        <div class="instrument" aria-label="sota_bench CLI output (static fallback); every command runs on a fresh clone">
           <div class="inst-bar">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="label">sota_bench &middot; real scorer output</span>
+            <span class="label">sota_bench &middot; runs on a fresh clone</span>
           </div>
           <div class="inst-body" style="grid-template-columns:1fr">
             <div class="readout" style="min-height:auto">
-              <div class="ln"><span class="prompt">$</span> python -m sota_bench score --naive --method</div>
-              <div class="ln"><span class="mut">naive   recall 0.833 &nbsp; method  recall 0.667 &nbsp; signed &Delta; recall <span class="hi">&minus;0.167</span> &nbsp;(the method lost)</span></div>
-              <div class="ln"><span class="prompt">$</span> python -m sota_bench delta --against pinned-baseline</div>
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench baseline</div>
+              <div class="ln"><span class="mut">naive recall 0.833 &nbsp; method recall 0.667 &nbsp; signed &Delta; <span class="hi">&minus;0.167</span> &nbsp;(the method lost; published as-is)</span></div>
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench delta</div>
               <div class="ln"><span class="hi">ValueError</span>: corpus mismatch: cannot difference across a dataset_hash boundary</div>
-              <div class="ln"><span class="prompt">$</span> python -m sota_bench admit decode_v1</div>
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench admit decode_v1 --n 3</div>
               <div class="ln"><span class="hi">REJECTED</span>: underpowered slice: n=3 &lt; MIN_SLICE_N=10</div>
             </div>
           </div>
@@ -250,7 +249,7 @@
       </noscript>
     </div>
 
-    <p class="note">A real terminal recording, self-hosted (no third-party player, no tracker): the actual output of <code style="font-family:var(--mono)">scorer.py &middot; loop.py &middot; admission.py</code>: the method losing to naive, the <code>ValueError</code> from <code>delta_vs_baseline</code>, and the admission floor rejecting the n=3 decode seed. Press play, or read the same lines above without JavaScript.</p>
+    <p class="note">A real recording of <code style="font-family:var(--mono)">python -m sota_bench</code>, self-hosted: every command runs on a fresh clone (stdlib only, no API key, no private corpus). It shows the published baseline (the method lost to a naive call), the <code>ValueError</code> the comparability gate raises on an incomparable diff, and the admission floor rejecting the n=3 decode seed. Press play, or read the same lines above without JavaScript.</p>
   </section>
 
   <section id="disclosures">
@@ -305,7 +304,7 @@
       <a class="card reveal span2" href="https://github.com/matte1782/sota-bench/tree/main/seeds/decode_v1" target="_blank" rel="noopener">
         <span class="ct">active research &middot; a second class</span>
         <h3>Decode-completeness</h3>
-        <p>A decoder that silently drops a <em>value-reducing</em> field (a debt leg, a scaling exponent, an authorization-relevant field) so a naive read reaches the site and rules the bug out. Early, honest signal across <b>3 public findings</b> (a DeFi accountant, a Solana paymaster, an oracle): the method out-detects a naive call on the <em>subtle</em> ones, while a deliberately-included eyeball-able control shows where it does not. <b>n=3 &middot; underpowered &middot; recall-only &middot; not yet a calibrated rate.</b></p>
+        <p>A decoder that silently drops a <em>value-reducing</em> field (a debt leg, a scaling exponent, an authorization-relevant field) so a naive read reaches the site and rules the bug out. Early, honest signal across <b>3 public findings</b> (a DeFi accountant, a Solana paymaster, an oracle): in this retrospective test the method caught the <em>subtle</em> ones a naive call missed, while a deliberately-included eyeball-able control shows where it does not. <b>n=3 &middot; underpowered &middot; recall-only &middot; not yet a calibrated rate.</b></p>
         <span class="go">growing toward a measured rate &#8599;</span>
       </a>
     </div>
