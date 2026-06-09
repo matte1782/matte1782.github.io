@@ -221,7 +221,25 @@
       <li><span class="pn">McNemar + power</span><span class="pd">under 10 discordant pairs &rarr; UNDERPOWERED: no significance claimed</span></li>
       <li><span class="pn">signed &Delta;</span><span class="pd">method &minus; naive, published as-is</span></li>
     </ol>
-    <p class="note">Drawn from what runs today in the open repo (<code style="font-family:var(--mono)">loop.py &middot; scorer.py &middot; admission.py &middot; stats.py</code>). Parts still on the roadmap are not drawn.</p>
+
+    <div class="instrument reveal" id="gate-inst" aria-label="The comparability gate refusing to difference two runs scored on different corpora">
+      <div class="inst-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="label">sota_bench &middot; comparability gate</span>
+      </div>
+      <div class="inst-body" style="grid-template-columns:1fr">
+        <div class="readout" id="gate-readout" style="min-height:auto">
+          <div class="ln"><span class="prompt">$</span> python -m sota_bench delta --run new --against pinned-baseline</div>
+          <div class="ln"><span class="mut">new       dataset_hash=sha256:9f2c4e&hellip;  scorer_version=v2</span></div>
+          <div class="ln"><span class="mut">baseline  dataset_hash=sha256:1a7e0b&hellip;  scorer_version=v2</span></div>
+          <div class="ln"><span class="hi">ValueError</span>: corpus mismatch: cannot difference across a dataset_hash boundary</div>
+          <div class="ln"><span class="mut">&gt; a delta is only valid against a baseline pinned on the byte-identical corpus</span></div>
+          <div class="ln"><span class="ok">&gt; the benchmark refuses to compare what it cannot honestly compare.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">Drawn from what runs today in the open repo (<code style="font-family:var(--mono)">loop.py &middot; scorer.py &middot; admission.py &middot; stats.py</code>). Parts still on the roadmap are not drawn. The <code>ValueError</code> above is the real message from <code>delta_vs_baseline</code>.</p>
   </section>
 
   <section id="disclosures">
@@ -372,6 +390,20 @@
     setTimeout(function(){ rv.forEach(function(el){ el.classList.add('in'); }); }, 2600); // safety: never leave content hidden
   }
 
+})();
+</script>
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ro = document.getElementById('gate-readout'); if(!ro) return;
+  var lns = Array.prototype.slice.call(ro.querySelectorAll('.ln')), done=false;
+  function reveal(){ if(done) return; done=true; lns.forEach(function(el,i){ if(reduce){ el.style.opacity='1'; return; } setTimeout(function(){ el.style.opacity='1'; }, 120 + i*380); }); }
+  var inst=document.getElementById('gate-inst');
+  if('IntersectionObserver' in window && inst){
+    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ reveal(); io.disconnect(); } }); },{threshold:.35});
+    io.observe(inst);
+    setTimeout(function(){ lns.forEach(function(el){ el.style.opacity='1'; }); }, 3000); // safety: never leave content hidden
+  } else { reveal(); }
 })();
 </script>
 </body>
