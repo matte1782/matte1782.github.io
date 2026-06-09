@@ -204,6 +204,11 @@
     <div class="prose reveal">
       <p>Models find candidate bugs cheaply. They do not triage them, calibrate severity, or notice where they are confidently wrong. That gap widens as models improve: someone still has to measure whether a new model is actually better, and whether a given method still earns its place.</p>
       <p><span class="term">sota_bench</span> is an open, model-agnostic benchmark with a non-LLM scorer and a pinned baseline: one naive call to a frontier model I run (no access to closed systems like Mythos), re-scored on each release. Its first run was useful and uncomfortable: a static version of my own method did <em>not</em> beat that naive call. The method's value is the runtime check: on a live re-run it recovered the exact finding static skepticism had cleared. A benchmark that corrects you is doing its job.</p>
+      <p style="font-family:var(--mono); font-size:14px; color:var(--dim); border-left:2px solid var(--signal-line); padding-left:16px; margin:20px 0 2px; line-height:1.7">
+        pinned baseline &middot; 16 items &middot; 2026-06-03<br>
+        naive recall <span style="color:var(--ink)">0.833</span> &gt; method <span style="color:var(--ink)">0.667</span> &middot; signed &Delta; <span style="color:var(--signal)">&minus;0.167</span> &nbsp;<span style="color:var(--faint)">(the method lost; published as-is)</span><br>
+        <a href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener" style="color:var(--signal)">open scorer &middot; github.com/matte1782/sota-bench &#8599;</a>
+      </p>
     </div>
   </section>
 
@@ -273,7 +278,7 @@
       </a>
       <!-- DISCLOSURES:END -->
     </div>
-    <p class="note">Severities as the official advisory rates them. Additional findings are in private coordination and are not listed until disclosed.</p>
+    <p class="note">CVSS severities, as the official advisory rates them. Additional findings are in private coordination and are not listed until disclosed.</p>
   </section>
 
   <section id="tooling">
@@ -282,7 +287,7 @@
       <a class="card reveal" href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">
         <span class="ct">benchmark &middot; scorer &middot; loop</span>
         <h3>sota_bench</h3>
-        <p>A model-agnostic benchmark for the validation/calibration layer: a labeled positive/negative corpus, a deterministic non-LLM scorer (recall · precision · FP-rate · both-ways CVSS calibration), and the SOTA-validation delta loop.</p>
+        <p>A model-agnostic benchmark for the validation/calibration layer: a labeled positive/negative corpus, a deterministic non-LLM scorer (recall · precision · FP-rate · both-ways CVSS calibration), and the SOTA-validation delta loop. Open (Apache-2.0) and runnable: the scorer reproduces the &minus;0.167 delta.</p>
         <span class="go">github.com/matte1782/sota-bench &#8599;</span>
       </a>
       <div class="card reveal">
