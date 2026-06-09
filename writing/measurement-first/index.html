@@ -6,9 +6,7 @@
 <title>Measuring whether my method beats a naive frontier-model call · Matteo Panzeri</title>
 <meta name="description" content="I built an open benchmark to test whether my vulnerability-finding methods beat a naive single call to a frontier model I run. On crypto one did; on authz a static proxy of one did not, and the runtime test recovered the case it missed." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,500;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
 <style>
   :root{
     --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
@@ -117,8 +115,8 @@
   <table>
     <thead><tr><th>pass</th><th>recall</th><th>precision</th><th>FP-rate</th><th>Youden J</th></tr></thead>
     <tbody>
-      <tr><td>naive single call</td><td class="num">0.83</td><td class="num">1.00</td><td class="num">0.00</td><td class="num">0.83</td></tr>
-      <tr><td>method-armed (static)</td><td class="num">0.67</td><td class="num">0.80</td><td class="num">0.10</td><td class="num">0.57</td></tr>
+      <tr><td>naive single call</td><td class="num">0.833</td><td class="num">1.00</td><td class="num">0.00</td><td class="num">0.833</td></tr>
+      <tr><td>method-armed (static)</td><td class="num">0.667</td><td class="num">0.80</td><td class="num">0.10</td><td class="num">0.567</td></tr>
     </tbody>
   </table>
   <p class="note">Pinned baseline, 2026-06-03, over the full 16-item labeled set (6 positive / 10 negative). The signed method-minus-naive delta is recall <span class="num">&minus;0.167</span>, precision <span class="num">&minus;0.20</span>, FP-rate <span class="num">+0.10</span>, Youden J <span class="num">&minus;0.267</span>: the static proxy is worse on every detection axis. The public <code>sota_bench</code> repo currently ships only the by-design-secure negatives; the positive items and two secure twins are withheld pending coordinated disclosure, so these exact rates are not reproducible from the public slice yet.</p>

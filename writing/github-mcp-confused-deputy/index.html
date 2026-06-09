@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A confused deputy in GitHub's own MCP server · Matteo Panzeri</title>
+<meta name="description" content="CVE-2026-48529: in lockdown mode, github-mcp-server bound every user's repository-access checks to the first user's token. A case study in agent tool-dispatch authorization confusion, and why I treat disclosures as fuel for a measurement, not as the point." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.86em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  pre{background:var(--bg2); border:1px solid var(--line2); border-radius:8px; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.6; color:#cfccc4; margin:0 0 22px}
+  pre .c{color:var(--faint)}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook · 2026-06-09</p>
+  <h1>A confused deputy in GitHub's own MCP server</h1>
+  <p class="dek">CVE-2026-48529: in lockdown mode, github-mcp-server bound every user's repository-access checks to the first user's token. A small, real instance of the class I work on, and a reason to be honest about what finding it does and does not prove.</p>
+  <p class="byline">Matteo Panzeri · AI-for-security research · co-reported with hewei-gikaku</p>
+
+  <h2>TL;DR</h2>
+  <p>The official <a href="https://github.com/github/github-mcp-server">github-mcp-server</a>, run in HTTP mode with <code>--lockdown-mode</code>, kept its repository-access cache as a single process-global object initialized with the <strong>first</strong> authenticated user's GraphQL client. Every later user shared it, so their lockdown access checks ran under the first user's token: a textbook <strong>confused deputy</strong> at the agent dispatch layer. It is now <a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349">CVE-2026-48529</a> (GHSA-pjp5-fpmr-3349, CVSS 6.0, CWE-284), fixed in 1.1.2. I was credited as a reporter, alongside another researcher who reported it independently. I am writing it up not because a medium-severity bug is remarkable, but because it is a clean example of the bug class my measurement work is built around, and a good occasion to say plainly what a disclosure like this is worth.</p>
+
+  <h2>The bug</h2>
+  <p>In HTTP mode, lockdown decides whether content from external contributors is trusted or sanitized, by asking GitHub (over GraphQL) what access the caller has to a repository. The cache that answers those questions was a singleton:</p>
+  <pre><span class="c">// pkg/lockdown/lockdown.go (pre-1.1.2)</span>
+var (
+    instance   *RepoAccessCache
+    instanceMu sync.Mutex
+)
+
+func GetInstance(client *githubv4.Client, opts ...RepoAccessOption) *RepoAccessCache {
+    instanceMu.Lock()
+    defer instanceMu.Unlock()
+    if instance == nil {
+        instance = &RepoAccessCache{ client: client } <span class="c">// stored on the FIRST call only</span>
+    }
+    return instance <span class="c">// every later caller gets the same object, with the first client</span>
+}</pre>
+  <p>Per request, the server builds a GraphQL client bound to that request's token and passes it in, but the singleton's <code>client</code> field is never updated after the first initialization. So once one user has made a request, every subsequent user's lockdown checks (<code>queryRepoAccessInfo</code>, reached through <code>IsSafeContent</code>, which gates trust decisions in at least six places across the issues and pull-request handlers) execute under the <em>first</em> user's credentials. The advisory's proof of concept is minimal: build two distinct GraphQL clients, call <code>GetInstance</code> twice, observe the same pointer, the second client silently dropped. Affected versions are <code>&gt;= 0.22.0, &lt; 1.1.2</code>; the fix scopes the cache per request.</p>
+
+  <h2>Why I care about this exact shape</h2>
+  <p>My named specialization is <strong>agent tool-dispatch authorization-confusion</strong>: an authorization decision that should be made per caller, at the point a tool or agent surface dispatches a privileged action, is instead skipped, made on the wrong path, or, as here, made once and reused. The usual variant is a guard present on the REST path but missing on the agent path. This is the <em>cross-user</em> variant: the guard runs, but its identity context is global, so one principal's access silently stands in for another's. Same root, a deputy that acts with authority that is not the caller's.</p>
+  <p>It is a good case because the mechanism is unglamorous and easy to miss in review: there is no missing check to grep for. The check is present; what is wrong is its <em>lifetime</em>. That is exactly the kind of thing a static read can rationalize away, and exactly why I think the interesting question is not "can a model find bugs" but "can we measure when a method actually beats a plain model call at telling the real ones from the look-alikes."</p>
+
+  <h2>What a disclosure like this is, and is not, worth</h2>
+  <p>Models now surface candidate vulnerabilities at enormous scale, so raw discovery is commoditizing. A credited CVE in a widely-used, GitHub-owned project is real and I am glad to have it, but I try not to mistake it for the contribution. It is <strong>fuel</strong>: one labeled, public, dup-verifiable instance of the class, which is worth more to me as a row in a benchmark than as a line on a list. The durable thing I am building is the <strong>yardstick</strong>, an open, model-agnostic benchmark and non-LLM scorer (<a href="https://github.com/matte1782/sota-bench">sota_bench</a>) that measures whether a given method beats a naive single call to a frontier model, re-run on every new release.</p>
+  <p>And the yardstick has already told me something I would rather not have published: on the authorization class, a static-prompt version of my own sibling-guard method <strong>lost</strong> to a naive single call (recall 0.667 versus 0.833, a signed delta of &minus;0.167 on the pinned set). The detail is in the <a href="../measurement-first/">methodology writeup</a>. I keep that result on the front page on purpose. A disclosure says I can find a real bug; the benchmark is what says, honestly, where my methods do and do not add value over the model itself.</p>
+
+  <h2>Keeping myself honest</h2>
+  <p>Two disciplines guard against the easy story. First, the scorer is not a model: every metric is a closed-form function of labels, and an admission floor mechanically refuses to call anything a "rate" below ten scored items, so I cannot promote an anecdote into a measured edge. Second, a commoditization watch: the one class where a method of mine currently shows an edge (decode-completeness) rests on a tiny, underpowered sample, and the edge is a single checklist behavior a stronger model could internalize on its own. So I test it against each new frontier model and pre-register what each outcome will mean before I run it. If the next model does the work my method does, the honest conclusion is that the method commoditized, and the measurement, not the method, was the asset all along.</p>
+
+  <h2>Credit and references</h2>
+  <p>This was reported independently by two people and we are both credited; I do not claim sole discovery. Thanks to the github-mcp-server maintainers for a fast, clean fix and for crediting reporters.</p>
+  <ul class="refs">
+    <li>Advisory: GitHub, CVE-2026-48529 / GHSA-pjp5-fpmr-3349, "Lockdown mode singleton in HTTP server causes cross-user GraphQL client confusion" (github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349). Fixed in 1.1.2.</li>
+    <li>The measurement: sota_bench, an open model-agnostic benchmark and non-LLM scorer (github.com/matte1782/sota-bench).</li>
+    <li>The honest baseline: "Measuring whether my method beats a naive frontier-model call" (the authz loss, in full).</li>
+    <li>CWE-284, Improper Access Control; confused-deputy framing per the classic capability literature.</li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782/sota-bench">sota_bench</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;·&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>
