@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/asciinema-player.css" />
 <style>
   :root{
     --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
@@ -227,24 +228,29 @@
       <li><span class="pn">signed &Delta;</span><span class="pd">method &minus; naive, published as-is</span></li>
     </ol>
 
-    <div class="instrument reveal" id="gate-inst" aria-label="The comparability gate refusing to difference two runs scored on different corpora">
-      <div class="inst-bar">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="label">sota_bench &middot; comparability gate</span>
-      </div>
-      <div class="inst-body" style="grid-template-columns:1fr">
-        <div class="readout" id="gate-readout" style="min-height:auto">
-          <div class="ln"><span class="prompt">$</span> python -m sota_bench delta --run new --against pinned-baseline</div>
-          <div class="ln"><span class="mut">new       dataset_hash=sha256:9f2c4e&hellip;  scorer_version=v2</span></div>
-          <div class="ln"><span class="mut">baseline  dataset_hash=sha256:1a7e0b&hellip;  scorer_version=v2</span></div>
-          <div class="ln"><span class="hi">ValueError</span>: corpus mismatch: cannot difference across a dataset_hash boundary</div>
-          <div class="ln"><span class="mut">&gt; a delta is only valid against a baseline pinned on the byte-identical corpus</span></div>
-          <div class="ln"><span class="ok">&gt; the benchmark refuses to compare what it cannot honestly compare.</span></div>
+    <div class="cast-wrap reveal" style="margin-top:8px">
+      <div id="cast-player" aria-label="A real recording of sota_bench: naive out-scores method, the comparability gate refuses an incomparable diff, and the n=3 decode seed is rejected as underpowered"></div>
+      <noscript>
+        <div class="instrument" aria-label="sota_bench scorer output (static fallback)">
+          <div class="inst-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="label">sota_bench &middot; real scorer output</span>
+          </div>
+          <div class="inst-body" style="grid-template-columns:1fr">
+            <div class="readout" style="min-height:auto">
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench score --naive --method</div>
+              <div class="ln"><span class="mut">naive   recall 0.833 &nbsp; method  recall 0.667 &nbsp; signed &Delta; recall <span class="hi">&minus;0.167</span> &nbsp;(the method lost)</span></div>
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench delta --against pinned-baseline</div>
+              <div class="ln"><span class="hi">ValueError</span>: corpus mismatch: cannot difference across a dataset_hash boundary</div>
+              <div class="ln"><span class="prompt">$</span> python -m sota_bench admit decode_v1</div>
+              <div class="ln"><span class="hi">REJECTED</span>: underpowered slice: n=3 &lt; MIN_SLICE_N=10</div>
+            </div>
+          </div>
         </div>
-      </div>
+      </noscript>
     </div>
 
-    <p class="note">Drawn from what runs today in the open repo (<code style="font-family:var(--mono)">loop.py &middot; scorer.py &middot; admission.py &middot; stats.py</code>). Parts still on the roadmap are not drawn. The <code>ValueError</code> above is the real message from <code>delta_vs_baseline</code>.</p>
+    <p class="note">A real terminal recording, self-hosted (no third-party player, no tracker): the actual output of <code style="font-family:var(--mono)">scorer.py &middot; loop.py &middot; admission.py</code>: the method losing to naive, the <code>ValueError</code> from <code>delta_vs_baseline</code>, and the admission floor rejecting the n=3 decode seed. Press play, or read the same lines above without JavaScript.</p>
   </section>
 
   <section id="disclosures">
@@ -397,18 +403,21 @@
 
 })();
 </script>
+<script src="assets/asciinema-player.min.js"></script>
 <script>
 (function(){
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var ro = document.getElementById('gate-readout'); if(!ro) return;
-  var lns = Array.prototype.slice.call(ro.querySelectorAll('.ln')), done=false;
-  function reveal(){ if(done) return; done=true; lns.forEach(function(el,i){ if(reduce){ el.style.opacity='1'; return; } setTimeout(function(){ el.style.opacity='1'; }, 120 + i*380); }); }
-  var inst=document.getElementById('gate-inst');
-  if('IntersectionObserver' in window && inst){
-    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ reveal(); io.disconnect(); } }); },{threshold:.35});
-    io.observe(inst);
-    setTimeout(function(){ lns.forEach(function(el){ el.style.opacity='1'; }); }, 3000); // safety: never leave content hidden
-  } else { reveal(); }
+  if(!window.AsciinemaPlayer) return;            // graceful: noscript fallback already shows the lines
+  var el = document.getElementById('cast-player'); if(!el) return;
+  AsciinemaPlayer.create('assets/scorer-demo.cast', el, {
+    autoPlay: false,        // motion off by default; the poster shows the final frame statically
+    preload: true,
+    loop: false,
+    poster: 'npt:0:10',     // final frame: all the real output visible without pressing play
+    fit: 'width',
+    controls: true,
+    terminalFontSize: '13px',
+    idleTimeLimit: 1.5
+  });
 })();
 </script>
 </body>

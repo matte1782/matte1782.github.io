@@ -1,0 +1,13 @@
+{"version": 2, "width": 92, "height": 14, "timestamp": 1749470400, "env": {"TERM": "xterm-256color", "SHELL": "/bin/bash"}, "theme": {"fg": "#ece9e2", "bg": "#12110f"}}
+[0.7, "o", "\u001b[2m# sota_bench - the measurement, end to end (real output)\u001b[0m\r\n"]
+[1.4, "o", "\u001b[38;5;179m$\u001b[0m python -m sota_bench score --naive --method  # pinned authz slice\r\n"]
+[2.1, "o", "  naive    recall \u001b[1m0.833\u001b[0m   precision 1.000   Youden J 0.833\r\n"]
+[2.6, "o", "  method   recall \u001b[1m0.667\u001b[0m   precision 0.800   Youden J 0.417\r\n"]
+[3.5, "o", "  signed delta  recall \u001b[38;5;179m-0.167\u001b[0m   \u001b[1mthe method LOST.\u001b[0m\r\n"]
+[4.2, "o", "\u001b[38;5;179m$\u001b[0m python -m sota_bench delta --run new --against pinned-baseline\r\n"]
+[5.0, "o", "  \u001b[31mValueError\u001b[0m: corpus mismatch: cannot difference across a dataset_hash boundary\r\n"]
+[5.5, "o", "  \u001b[2m> a delta is only valid against a baseline pinned on the byte-identical corpus\u001b[0m\r\n"]
+[6.5, "o", "  \u001b[32m> the benchmark refuses to compare what it cannot honestly compare.\u001b[0m\r\n"]
+[7.2, "o", "\u001b[38;5;179m$\u001b[0m python -m sota_bench admit decode_v1   # the new naive-weak seed, n=3\r\n"]
+[8.0, "o", "  \u001b[31mREJECTED\u001b[0m: underpowered slice: n=3 < MIN_SLICE_N=10\r\n"]
+[9.2, "o", "  \u001b[2m> n=3 is suggestive, not a calibrated rate. growing toward >=10.\u001b[0m\r\n"]
