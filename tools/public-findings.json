@@ -1,27 +1,7 @@
 {
-  "_comment": "Single source of truth for the portfolio's PUBLIC disclosures. Each record renders the site #disclosures row AND a sota-bench README line via tools/generate_disclosures.py. ADD a credit = append one record + run the generator (with --verify). A record renders ONLY if proof.published is true AND it carries a url (fail-closed). NEVER add a finding whose advisory is not live-published: the generator's --verify mode re-checks each proof against the live GitHub state, so an embargoed/triage/un-realized finding cannot ship. Order here is the on-site order.",
+  "_comment": "Single source of truth for the portfolio's PUBLIC disclosures. Each record renders the site #disclosures row AND a sota-bench README line via tools/generate_disclosures.py. ADD a credit = append one record + run the generator (with --verify). A record renders ONLY if proof.published is true AND it carries a url (fail-closed). NEVER add a finding whose advisory is not live-published: the generator's --verify mode re-checks each proof against the live GitHub state, so an embargoed/triage/un-realized finding cannot ship. Order here is the on-site order: severity score descending.",
   "_embargo_rule": "proof.published must be backed by a LIVE state check at publish time (repo security-advisory state==published, OR presence in the GitHub global advisory DB), NEVER a stored string. Findings still in private coordination are intentionally NOT listed here until their advisory or credit actually publishes.",
   "findings": [
-    {
-      "name": "GitHub MCP Server",
-      "severity_label": "Mod",
-      "score": "6.0",
-      "desc": "Lockdown-mode RepoAccessCache singleton in HTTP mode binds every user's repo-access checks to the first authenticated user's GraphQL token: cross-user authorization confusion (CWE-284). CVE-2026-48529. Credited reporter (co-reported). Patched 1.1.2.",
-      "id_label": "CVE-2026-48529",
-      "url": "https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349",
-      "proof": {
-        "published": true,
-        "type": "repo_advisory",
-        "repo": "github/github-mcp-server",
-        "ghsa": "GHSA-pjp5-fpmr-3349",
-        "cve": "CVE-2026-48529",
-        "in_global_db": false,
-        "cve_in_global_db": false,
-        "repo_state": "published",
-        "verified_at": "2026-06-09",
-        "note": "Repo advisory published 2026-06-09 with CVE-2026-48529 (CVSS 6.0, CWE-284 Improper Access Control). Not yet synced to the GitHub global advisory DB (lag, like Outline). matte1782 is a credited reporter, co-reported with hewei-gikaku (not sole discoverer). Citation is the public repo advisory URL (anonymous HTTP 200)."
-      }
-    },
     {
       "name": "dex",
       "severity_label": "High",
@@ -61,26 +41,6 @@
       }
     },
     {
-      "name": "Outline",
-      "severity_label": "Mod",
-      "score": "4.4",
-      "desc": "Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890.",
-      "id_label": "CVE-2026-43890",
-      "url": "https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw",
-      "proof": {
-        "published": true,
-        "type": "repo_advisory",
-        "repo": "outline/outline",
-        "ghsa": "GHSA-gf8h-cv9v-q4fw",
-        "cve": "CVE-2026-43890",
-        "in_global_db": false,
-        "cve_in_global_db": false,
-        "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). Citation is the repo advisory URL (solid + published); verify the CVE via NVD before citing the CVE number in isolation."
-      }
-    },
-    {
       "name": "MCP Registry",
       "severity_label": "Mod",
       "score": "6.3",
@@ -100,6 +60,26 @@
       }
     },
     {
+      "name": "GitHub MCP Server",
+      "severity_label": "Mod",
+      "score": "6.0",
+      "desc": "Lockdown-mode RepoAccessCache singleton in HTTP mode binds every user's repo-access checks to the first authenticated user's GraphQL token: cross-user authorization confusion (CWE-284). CVE-2026-48529. Credited reporter (co-reported). Patched 1.1.2.",
+      "id_label": "CVE-2026-48529",
+      "url": "https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "github/github-mcp-server",
+        "ghsa": "GHSA-pjp5-fpmr-3349",
+        "cve": "CVE-2026-48529",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-09",
+        "note": "Repo advisory published 2026-06-09 with CVE-2026-48529 (CVSS 6.0, CWE-284 Improper Access Control). Not yet synced to the GitHub global advisory DB (lag, like Outline). matte1782 is a credited reporter, co-reported with hewei-gikaku (not sole discoverer). Citation is the public repo advisory URL (anonymous HTTP 200)."
+      }
+    },
+    {
       "name": "Kirby",
       "severity_label": "Mod",
       "score": "5.3",
@@ -116,6 +96,26 @@
         "repo_state": "published",
         "verified_at": "2026-06-08",
         "note": "Published in the GitHub global advisory DB with CVE-2026-45334."
+      }
+    },
+    {
+      "name": "Outline",
+      "severity_label": "Mod",
+      "score": "4.4",
+      "desc": "Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890.",
+      "id_label": "CVE-2026-43890",
+      "url": "https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "outline/outline",
+        "ghsa": "GHSA-gf8h-cv9v-q4fw",
+        "cve": "CVE-2026-43890",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). Citation is the repo advisory URL (solid + published); verify the CVE via NVD before citing the CVE number in isolation."
       }
     }
   ]
