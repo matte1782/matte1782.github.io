@@ -1,0 +1,102 @@
+{
+  "_comment": "Single source of truth for the portfolio's PUBLIC disclosures. Each record renders the site #disclosures row AND a sota-bench README line via tools/generate_disclosures.py. ADD a credit = append one record + run the generator (with --verify). A record renders ONLY if proof.published is true AND it carries a url (fail-closed). NEVER add a finding whose advisory is not live-published: the generator's --verify mode re-checks each proof against the live GitHub state, so an embargoed/triage/un-realized finding cannot ship. Order here is the on-site order.",
+  "_embargo_rule": "proof.published must be backed by a LIVE state check at publish time (repo security-advisory state==published, OR presence in the GitHub global advisory DB), NEVER a stored string. Findings still in private coordination are intentionally NOT listed here until their advisory or credit actually publishes.",
+  "findings": [
+    {
+      "name": "dex",
+      "severity_label": "High",
+      "score": "8.7",
+      "desc": "Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged.",
+      "id_label": "GHSA-7qjx",
+      "url": "https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "dexidp/dex",
+        "ghsa": "GHSA-7qjx-gp9h-65qj",
+        "cve": null,
+        "in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Accepted + reporter-credited; no CVE (master-only, no released tag carried the bug). Citation is the repo advisory URL; not in the GitHub global DB by design."
+      }
+    },
+    {
+      "name": "Open WebUI",
+      "severity_label": "High",
+      "score": "7.3",
+      "desc": "Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.",
+      "id_label": "GHSA-3wgj",
+      "url": "https://github.com/advisories/GHSA-3wgj-c2hg-vm6q",
+      "proof": {
+        "published": true,
+        "type": "global_db",
+        "repo": "open-webui/open-webui",
+        "ghsa": "GHSA-3wgj-c2hg-vm6q",
+        "cve": null,
+        "in_global_db": true,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Published in the GitHub global advisory DB (severity high). No CVE assigned yet (cve=null); cite as GHSA, not CVE."
+      }
+    },
+    {
+      "name": "Outline",
+      "severity_label": "Mod",
+      "score": "4.4",
+      "desc": "Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890.",
+      "id_label": "CVE-2026-43890",
+      "url": "https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "outline/outline",
+        "ghsa": "GHSA-gf8h-cv9v-q4fw",
+        "cve": "CVE-2026-43890",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). Citation is the repo advisory URL (solid + published); verify the CVE via NVD before citing the CVE number in isolation."
+      }
+    },
+    {
+      "name": "MCP Registry",
+      "severity_label": "Mod",
+      "score": "6.3",
+      "desc": "Unauthenticated SSRF bypassing the private-address allowlist via 6to4 / NAT64 (CWE-918). CVE-2026-44430.",
+      "id_label": "CVE-2026-44430",
+      "url": "https://github.com/advisories/GHSA-r48c-v28r-pf6v",
+      "proof": {
+        "published": true,
+        "type": "global_db",
+        "repo": "modelcontextprotocol/registry",
+        "ghsa": "GHSA-r48c-v28r-pf6v",
+        "cve": "CVE-2026-44430",
+        "in_global_db": true,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Published in the GitHub global advisory DB with CVE-2026-44430."
+      }
+    },
+    {
+      "name": "Kirby",
+      "severity_label": "Mod",
+      "score": "5.3",
+      "desc": "Content locks disclose IDs and emails of otherwise-inaccessible users (CWE-862). CVE-2026-45334.",
+      "id_label": "CVE-2026-45334",
+      "url": "https://github.com/getkirby/kirby/security/advisories/GHSA-39vq-49qm-r2mc",
+      "proof": {
+        "published": true,
+        "type": "global_db",
+        "repo": "getkirby/kirby",
+        "ghsa": "GHSA-39vq-49qm-r2mc",
+        "cve": "CVE-2026-45334",
+        "in_global_db": true,
+        "repo_state": "published",
+        "verified_at": "2026-06-08",
+        "note": "Published in the GitHub global advisory DB with CVE-2026-45334."
+      }
+    }
+  ]
+}
