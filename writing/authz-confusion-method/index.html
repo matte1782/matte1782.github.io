@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent tool-dispatch authorization-confusion: a detection method and public instance index · Matteo Panzeri</title>
+<meta name="description" content="A reproducible sibling-diff detection method and a public instance index for agent and MCP tool-dispatch authorization-confusion, mapped onto OWASP API1/API5:2023, CWE-284/285/862/863/639, the confused-deputy concept, and MITRE ATLAS AML.T0053. Systematization of an already-named class, with a runtime PoC oracle and the case studies linked as instances." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.86em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  pre{background:var(--bg2); border:1px solid var(--line2); border-radius:8px; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.6; color:#cfccc4; margin:0 0 22px}
+  pre .c{color:var(--faint)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 24px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  tbody tr:first-child td{color:var(--ink); font-weight:500}
+  td .num{font-family:var(--mono)}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  /* mobile: keep the instance index from forcing horizontal page scroll */
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook · 2026-06-11</p>
+  <h1>Agent tool-dispatch authorization-confusion: a detection method and a public instance index</h1>
+  <p class="dek">A reproducible sibling-diff procedure and a mapped corpus for authorization-confusion at the agent and MCP tool-dispatch layer. This is not a new bug class. It is an already-named one (OWASP API1/API5:2023, CWE-284/285/862/863/639, the confused deputy, MITRE ATLAS AML.T0053); the contribution is the systematization and a runtime oracle, with the case studies linked as instances.</p>
+  <p class="byline">Matteo Panzeri · AI-for-security research · systematization of a recognized class</p>
+
+  <h2>What this page is</h2>
+  <p>This is the connective spine for three pieces of work that already exist: a <a href="../github-mcp-confused-deputy/">cross-user confused deputy in GitHub's own MCP server</a>, a <a href="../dex-token-exchange-connector-acl/">grant that skipped dex's connector allow-list</a>, and a <a href="../measurement-first/">measurement essay</a> that asks whether the method beats a naive frontier-model call. Each of those is a single artifact: one disclosure, one disclosure, one benchmark. This page does not re-derive their code or re-run their experiments. It states the underlying class, the detection <em>method</em> as a reproducible procedure, a taxonomy of its sub-patterns, and a public index of live-published instances mapped onto recognized labels. The case studies are the instances; this is the systematization.</p>
+
+  <h2>The class (prior art)</h2>
+  <p>Nothing on this page is a new vulnerability class. Authorization that should be decided per caller, at the point a tool or agent surface dispatches a privileged action, but is instead skipped, decided on the wrong path, or decided once and reused, is a recognized authorization-confusion / confused-deputy pattern. The honest framing is the one Orange Tsai used for SSRF: he did not invent SSRF; his contribution was the definitive systematization of an inconsistency that was already known. The contribution here is the same shape, a reproducible method plus a public corpus, not the invention of a class. The established labels it maps onto:</p>
+  <ul>
+    <li><strong>OWASP API1:2023</strong>, Broken Object Level Authorization (BOLA): an attacker manipulates object identifiers to reach objects belonging to other principals. The cross-user variant of this class is a BOLA at the dispatch layer.</li>
+    <li><strong>OWASP API5:2023</strong>, Broken Function Level Authorization (BFLA): a caller reaches a function or action they should not be authorized to invoke; the fix is deny-by-default with explicit grants. The missing-guard variant maps here.</li>
+    <li><strong>CWE-284</strong> Improper Access Control (the broad parent), <strong>CWE-285</strong> Improper Authorization (a check absent or performed incorrectly, the broad authorization parent, with <strong>CWE-862</strong> Missing Authorization (a check absent entirely) and <strong>CWE-863</strong> Incorrect Authorization (a check performed but performed wrong) as its missing/incorrect children), and <strong>CWE-639</strong> Authorization Bypass Through User-Controlled Key (the IDOR-style key swap).</li>
+    <li>The <strong>confused deputy</strong> itself: Norman Hardy's 1988 note describing a privileged program tricked into misusing its authority on behalf of a less-privileged caller. That is the root concept, and the cross-user instance is a literal one.</li>
+    <li><strong>MITRE ATLAS AML.T0053</strong>, AI Agent Tool Invocation: an adversary uses access to an AI agent to invoke tools the agent can reach, including tools not directly accessible to users, to gain increased privilege or data access. The note about tools the user cannot reach directly is exactly the dispatch-layer authorization surface this method targets.</li>
+  </ul>
+  <p>To be explicit about provenance: ATLAS AML.T0053 is cited under its current MITRE canonical name, AI Agent Tool Invocation; an older mirror labeled the same identifier differently before a 2025 rename, and the canonical name is the one used here. The CWE titles are quoted without their live version suffixes. None of these is asserted beyond what its primary source says.</p>
+
+  <h2>The detection method</h2>
+  <p>The procedure is deliberately cheap to run and front-loaded with kill gates, so that most candidates die before any proof-of-concept work begins. It has three parts: a starting move, a sequence of gates, and a two-tier oracle.</p>
+  <p><strong>STEP-0, the sibling-diff.</strong> Enumerate the recently-shipped, security-relevant tool-dispatch and agent surfaces in a target. For each candidate action, find the <em>sibling</em> path that already enforces the per-caller authorization that the candidate appears to be missing, decide on the wrong identity, or reuse. Then diff them. The sibling is the control: a peer handler that does the right thing makes the deviation legible and tells you what the correct check looks like. If there is no sibling that enforces it, the surface is probably uniformly missing the check (a different, simpler finding) or the check genuinely lives elsewhere.</p>
+  <p><strong>Cheap-kill gates, in order.</strong> Run them in sequence and stop at the first failure:</p>
+  <ul>
+    <li><strong>Duplicate</strong>: query OSV.dev and the GitHub advisory database for the exact surface. A known, fixed, or already-reported issue is dead here.</li>
+    <li><strong>By-design and reachability</strong>: is the default configuration already secure, so the path is only reachable under a non-default, self-inflicted setting? Is this a deliberate shared-capability carve-out rather than a confusion? If the secure posture is the default, the candidate dies.</li>
+    <li><strong>Impact triad</strong>: does the action cross to a <em>lower trust boundary</em> (a different user, tenant, or privilege level)? Does it touch a <em>sensitive artifact</em>? Is there a <em>practical consequence</em> a reporter can state in one sentence? All three are required; failing any one demotes the finding.</li>
+    <li><strong>Upstream-gating runtime trace</strong>: trace the <em>actual runtime object</em> that performs the dispatch and the check, not the import chain or the call graph as written. A guard that looks present in source can be bypassed, shadowed, or bound to the wrong identity at runtime; only the runtime object settles it.</li>
+  </ul>
+  <p><strong>The two-tier PoC oracle.</strong> A candidate that survives the gates earns a proof of concept with two independent tiers:</p>
+  <ul>
+    <li><strong>Tier-A, sibling-control denial</strong>: show the <em>same</em> principal denied on the sibling path, yet reaching the same action through the dispatch surface. The sibling denial is the control that proves the dispatch path is the leak, not a misconfiguration.</li>
+    <li><strong>Tier-B, fresh-CSPRNG sentinel</strong>: mint a fresh cryptographically-random sentinel value and drive it through the dispatch sink, then observe it emerge on the wrong side of the boundary. A fresh sentinel rules out replay, caching, and coincidence, and dates the proof.</li>
+  </ul>
+  <p>The discriminator of this method is the <em>runtime</em> check, and I am honest about that because I measured it. A static-prompt proxy of the sibling-guard heuristic, the version that reads source rather than tracing the runtime object, <strong>lost</strong> to a naive single frontier-model call on the authorization class (recall <span class="num">0.667</span> versus <span class="num">0.833</span>, a signed &Delta; of <strong><span class="num">&minus;0.167</span></strong> on the pinned set), and the runtime oracle is what recovered the case the static proxy missed, on the subset I could stand up and re-run live. The full measured result, including that loss and which runtime cases were truly live-reran versus settled on recorded evidence, is in the <a href="../measurement-first/">measurement writeup</a>. The method earns its keep at the runtime tier, not the static one, and the index below should be read with that in mind.</p>
+
+  <h2>A taxonomy of sub-patterns</h2>
+  <p>The class has several variants, separated by <em>where</em> the authorization decision goes wrong. Each named variant is anchored to a published instance; the variants that I can describe only generically are coordinated disclosures still in progress, and are not pinned to any named target here.</p>
+  <ul>
+    <li><strong>Cross-user / global-identity confused deputy.</strong> The guard runs, but its identity context is process-global, so one principal's access silently stands in for another's. The deputy acts with authority that is not the caller's. Published instance: <a href="../github-mcp-confused-deputy/">github-mcp-server</a>, where a lockdown-mode access cache was a singleton bound to the first authenticated user's client.</li>
+    <li><strong>Guard skipped on a sibling grant or dispatch path.</strong> The check is present and correct on the peer entry points but absent on one of them, so that single path grants what its siblings would deny. Published instance: <a href="../dex-token-exchange-connector-acl/">dex</a>, where the token-exchange grant omitted the connector allow-list check that its sibling OAuth handlers enforce.</li>
+    <li><strong>Guard present on REST, missing on the agent / tool path (generic).</strong> A capability is correctly gated on the conventional API but the newly-shipped agent or tool-dispatch surface reaches the same action without that gate. This is the canonical shape STEP-0 hunts; instances of it are among the coordinated disclosures in progress and are not named here.</li>
+    <li><strong>Incomplete-fix sibling (generic).</strong> A prior fix closed one entry point but a peer path to the same action survives, so the original class persists behind a patched-looking surface. Where this appears in coordinated disclosures still under embargo, it is referred to only generically and added on publication.</li>
+  </ul>
+
+  <h2>The public instance index</h2>
+  <p>The on-axis published set is honestly thin. On the <em>exact</em> agent and MCP tool-dispatch authorization-confusion axis, the only published, credited instance is github-mcp (co-reported, MEDIUM). dex is the same sibling-diff method on a different surface (an OAuth grant, not MCP), included because the method is identical. Outline and Kirby are listed as clearly-labeled adjacent web-surface instances of the broader authorization-confusion family, not as agent tool-dispatch findings. Further coordinated disclosures are in progress and are added to this index on publication, not before.</p>
+  <table>
+    <thead><tr><th>instance</th><th>class label</th><th>sub-pattern</th><th>severity</th><th>identifier</th><th>sibling-diff</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>github-mcp-server (CORE, agent/MCP)</td>
+        <td>CWE-284 / API1:2023</td>
+        <td>cross-user confused deputy</td>
+        <td>MEDIUM, CVSS 6.0</td>
+        <td><a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349">CVE-2026-48529</a></td>
+        <td>per-request clients enforce identity; the singleton access cache reused the first user's client</td>
+      </tr>
+      <tr>
+        <td>dex (same method, OAuth surface)</td>
+        <td>CWE-285 / API5:2023</td>
+        <td>guard skipped on a sibling grant path</td>
+        <td>HIGH (no CVE; master-only)</td>
+        <td><a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj">GHSA-7qjx-gp9h-65qj</a></td>
+        <td>sibling handlers call <code>isConnectorAllowed</code>; the token-exchange grant did not</td>
+      </tr>
+      <tr>
+        <td>Outline (ADJACENT, web surface)</td>
+        <td>CWE-639 / API1:2023 (BOLA)</td>
+        <td>user-controlled key, cross-tenant</td>
+        <td>MEDIUM</td>
+        <td><a href="https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw">CVE-2026-43890</a></td>
+        <td>cross-tenant IDOR in subscription creation; web app, not agent/MCP</td>
+      </tr>
+      <tr>
+        <td>Kirby (ADJACENT, web surface)</td>
+        <td>CWE-862 / API5:2023</td>
+        <td>missing authorization (not confusion)</td>
+        <td>MEDIUM</td>
+        <td><a href="https://github.com/getkirby/kirby/security/advisories/GHSA-39vq-49qm-r2mc">CVE-2026-45334</a></td>
+        <td>content-lock info disclosure on a missing authz check; web surface, adjacent at most</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Honesty and scope</h2>
+  <p>A few things stated plainly so the index is not read as more than it is. The github-mcp finding was <strong>co-reported</strong>: I was credited as a reporter alongside another researcher who reported it independently, and I do not claim sole discovery. Its severity is MEDIUM (CVSS 6.0); dex was assessed HIGH but carries no CVE because the bug existed only on master and no released tag ever shipped it. Both of these severity facts cut both ways, and I keep them visible rather than rounding toward the more impressive number. The page is prior-art-led on purpose: the labels above are recognized, the class is named, and the contribution is systematization, not novelty. The one measured result that bears on the method is a <em>loss</em>, the static proxy losing to a naive model call, and it is linked rather than buried. Outline and Kirby are adjacent web-surface entries, labeled as such, not agent tool-dispatch findings. Finally, the on-axis corpus is genuinely thin today, and several further instances are coordinated disclosures still under embargo; they are referred to only generically here and named when their advisories publish. Those embargoed instances are not yet independently checkable by a reader and are claimed only as forthcoming, not as present evidence, so the verifiable base today is just the published rows in the index above. No statistics on this page are asserted beyond what the cited advisories and the linked measurement record support.</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>OWASP API Security Top 10, API1:2023 Broken Object Level Authorization (owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/). <a href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>OWASP API Security Top 10, API5:2023 Broken Function Level Authorization (owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/). <a href="https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>CWE-284 Improper Access Control; CWE-285 Improper Authorization; CWE-862 Missing Authorization; CWE-863 Incorrect Authorization; CWE-639 Authorization Bypass Through User-Controlled Key (cwe.mitre.org). <a href="https://cwe.mitre.org/data/definitions/284.html" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Hardy, N. "The Confused Deputy: (or why capabilities might have been invented)." ACM SIGOPS Operating Systems Review, Vol. 22, No. 4, pp. 36 to 38, October 1988. DOI 10.1145/54289.871709. <a href="https://dl.acm.org/doi/10.1145/54289.871709" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>MITRE ATLAS, AML.T0053 AI Agent Tool Invocation (canonical atlas-data, modified 2025-11-04). <a href="https://github.com/mitre-atlas/atlas-data" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Tsai, O. "A New Era of SSRF: Exploiting URL Parsers in Trending Programming Languages." Black Hat USA 2017 (framing analogy for systematization, not a label). <a href="https://www.blackhat.com/us-17/speakers/Orange-Tsai.html" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance: github-mcp-server, CVE-2026-48529 / GHSA-pjp5-fpmr-3349, CWE-284, fixed 1.1.2 (co-reported). <a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance: dex, GHSA-7qjx-gp9h-65qj, CWE-285, fix PR #4784 (master-only, no CVE). <a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>The measured static-proxy loss and the runtime oracle: "Measuring whether my method beats a naive frontier-model call" (this site).</li>
+    <li>The open benchmark and non-LLM scorer: sota_bench (github.com/matte1782/sota-bench). <a href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">link &#8599;</a></li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782/sota-bench">sota_bench</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;·&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>
