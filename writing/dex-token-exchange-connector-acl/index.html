@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The token-exchange grant that skipped dex's connector allow-list · Matteo Panzeri</title>
+<meta name="description" content="GHSA-7qjx-gp9h-65qj (CWE-285): dex enforced a client's per-client connector allow-list on its other OAuth2 entry points but omitted it on the token-exchange grant. A sibling-diff method writeup, and where the measurement fits." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.86em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  pre{background:var(--bg2); border:1px solid var(--line2); border-radius:8px; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.6; color:#cfccc4; margin:0 0 22px}
+  pre .c{color:var(--faint)}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook · 2026-06-11</p>
+  <h1>The token-exchange grant that skipped dex's connector allow-list</h1>
+  <p class="dek">GHSA-7qjx-gp9h-65qj (CWE-285): dex enforced a client's per-client connector allow-list on its other OAuth2 entry points, but the token-exchange grant read a connector ID straight from the request and never checked it against that allow-list.</p>
+  <p class="byline">Matteo Panzeri · AI-for-security research · reporter and fix author</p>
+
+  <h2>TL;DR</h2>
+  <p>In <a href="https://github.com/dexidp/dex" target="_blank" rel="noopener">dexidp/dex</a>, a client can carry an optional allow-list field, <code>client.AllowedConnectors</code>. When it is set, that client may authenticate only through the connectors named in it. The helper that enforces this, <code>isConnectorAllowed</code>, was called on the authorization-request path and on the connector-login path, but it was not called on the OAuth2 token-exchange grant. That grant read <code>connector_id</code> from the request and resolved the connector without first asking whether the client was permitted to use it. So a confidential client whose allow-list restricted it to a subset of connectors could obtain a token through a connector it was forbidden to use everywhere else. It is now <a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj" target="_blank" rel="noopener">GHSA-7qjx-gp9h-65qj</a>, CWE-285 (Improper Authorization), confirmed High by the maintainer, with no CVE assigned because the gap lived only on the master branch and never shipped in a released tag. I reported it and I wrote the fix (<a href="https://github.com/dexidp/dex/pull/4784" target="_blank" rel="noopener">PR #4784</a>). I am writing it up for the method, not the severity: this is a worked example of finding the one entry point that drops a check its siblings keep.</p>
+
+  <h2>The bug</h2>
+  <p>The allow-list check itself is small. An empty list means any connector is allowed; a non-empty list is a membership test:</p>
+  <pre><span class="c">// server/handlers.go:318</span>
+func isConnectorAllowed(allowedConnectors []string, connectorID string) bool {
+    if len(allowedConnectors) == 0 {
+        return true <span class="c">// empty list = any connector allowed</span>
+    }
+    for _, id := range allowedConnectors {
+        if id == connectorID {
+            return true
+        }
+    }
+    return false
+}</pre>
+  <p>Pre-fix, <code>handleTokenExchange</code> (at <code>server/handlers.go:1804</code>) read <code>connID := q.Get("connector_id")</code>, a request parameter marked REQUIRED in the in-code comment, and then called <code>s.getConnector(ctx, connID)</code> directly, with no allow-list check between the two. The other request-driven entry points did make that check. The fix is seven lines (a six-line guard plus its blank separator line, matching the +7 additions to <code>server/handlers.go</code> in the diff), inserted immediately before the <code>getConnector</code> call, which shifts that call to line 1842 in the patched file:</p>
+  <pre><span class="c">// server/handlers.go, PR #4784, inserted before getConnector</span>
+if !isConnectorAllowed(client.AllowedConnectors, connID) {
+    s.logger.ErrorContext(r.Context(), "connector not allowed for client",
+        "connector_id", connID, "client_id", client.ID)
+    s.tokenErrHelper(w, errInvalidRequest, "Connector not allowed for this client.", http.StatusBadRequest)
+    return
+}</pre>
+  <p>The PR also adds <code>TestHandleTokenExchangeAllowedConnectors</code> with four cases: a connector in the allow-list returns 200, a connector matching a non-first entry in the allow-list returns 200, a connector not in the allow-list returns 400, and an empty allow-list permits any connector and returns 200. The third case is the one that fails without the patch.</p>
+
+  <h2>The method: a sibling that drops a check its peers keep</h2>
+  <p>The find did not come from grepping for a missing call. It came from treating <code>isConnectorAllowed</code> as a security-relevant action and enumerating every place a connector ID enters the server from request input, then asking which of those places ran the allow-list and which did not. Pre-fix, <code>isConnectorAllowed</code> was called at exactly two request-input-driven entry points and omitted at a third:</p>
+  <ul>
+    <li><strong>Enforced</strong> at <code>server/oauth2.go:535</code>, inside <code>parseAuthorizationRequest</code> (the function begins at <code>oauth2.go:477</code>). This is the authorization-request entry, where <code>ConnectorID</code> is first taken from the request and stored into the <code>AuthRequest</code>.</li>
+    <li><strong>Enforced</strong> at <code>server/handlers.go:377</code>, inside <code>handleConnectorLogin</code> (the function begins at <code>handlers.go:346</code>). This is the connector-login entry.</li>
+    <li><strong>Missing</strong> in <code>handleTokenExchange</code> (the function begins at <code>handlers.go:1804</code>). It read <code>connID := q.Get("connector_id")</code> and called <code>s.getConnector(ctx, connID)</code> at <code>handlers.go:1842</code> in the patched numbering, with no allow-list check first.</li>
+  </ul>
+  <p>The signature of this method is the completeness check, so I owe the full enumeration rather than the single hit. There are six <code>getConnector</code> call sites in <code>server/handlers.go</code>. Three consume a connector ID taken fresh from request input: the authorization path in <code>oauth2.go</code>, <code>handleConnectorLogin</code> (the <code>getConnector</code> at <code>:384</code>, guarded by the allow-list at <code>:377</code>), and <code>handleTokenExchange</code> (the <code>getConnector</code> at <code>:1842</code>, which was the gap). The other three consume an already-validated stored ID and so do not need a fresh allow-list check:</p>
+  <ul>
+    <li><code>handlePasswordLogin</code> (<code>:591</code>) uses <code>authReq.ConnectorID</code> and additionally rejects any mismatch.</li>
+    <li><code>handleConnectorCallback</code> (<code>:743</code>) uses <code>authReq.ConnectorID</code> with the same mismatch guard.</li>
+    <li><code>exchangeAuthCode</code> (<code>:1404</code>) uses <code>authCode.ConnectorID</code>, set during the already-validated authorization flow.</li>
+    <li><code>handlePasswordGrant</code> (<code>:1620</code>) uses the server's own <code>s.passwordConnector</code> config, not user input.</li>
+  </ul>
+  <p>So the fix at the token-exchange grant closes the complete set of request-input-driven connector-selection entry points. There is no remaining unguarded sibling, and stating that plainly is part of the work: the enumeration is what lets me say the patch is complete rather than hope it is. The discovery method generalizes past dex. Take a security-relevant action, list its siblings, and look for the one entry point that drops a check its peers enforce.</p>
+
+  <h2>Severity, both ways</h2>
+  <p>I self-assessed this as High, 8.7, <code>CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:C/C:H/I:H/A:N</code>, and the maintainer confirmed High. The <code>PR:H</code> precondition is real and I want to state it without softening. To exploit this, the attacker must already hold the confidential client's <code>client_secret</code> and a valid <code>subject_token</code>, the client must have the token-exchange grant enabled, and <code>AllowedConnectors</code> must be set to a restrictive subset. Given all of that, the impact is that the restricted client escapes its own connector restriction and authenticates through a connector it was explicitly denied elsewhere, which is why the confidentiality and integrity impacts are High and the scope is changed.</p>
+  <p>The honest deflator goes next to the score, not in a footnote. The gap was introduced by PR #4610 (commit <code>f80a89d</code>) on 2026-03-11 and existed only on the master branch. No released tag ever carried it. Real-world exposure was bounded to operators running dex from master between 2026-03-11 and the 2026-05-11 fix. That is exactly why the maintainer assigned High but declined to request a CVE: the authorization weakness is real and worth the High rating, and at the same time it never reached a shipped release, so a CVE would overstate the deployed blast radius. High-but-no-CVE is not a half-result here. It is the calibrated outcome, and I would rather report both numbers than pick the flattering one.</p>
+
+  <h2>Where the measurement fits</h2>
+  <p>The disclosure and the sibling-diff method are the substance of this writeup. The measurement is a supporting exhibit, evidence that I hold my own methods to a baseline instead of asserting they work. That instrument is <a href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">sota_bench</a>, an open, model-agnostic benchmark with a deterministic non-LLM scorer that measures whether a method beats a single naive call to a frontier model, re-run on each release.</p>
+  <p>It has already published a result against this exact style of reasoning that I would not have chosen to advertise. On the authorization class, a static-prompt proxy of the sibling-guard method <strong>lost</strong> to a naive single call: recall 0.667 against 0.833, a signed delta of &minus;0.167 on the pinned set. That number stays on the front page on purpose, because the point of the benchmark is to catch over-claiming, including mine. The one place a method of mine currently shows an edge, decode-completeness, sits on a tiny, underpowered sample (n=3, recall-only) behind an admission floor that mechanically refuses to call any rate below ten scored items a rate at all. So the only defensible claim I make is narrow and prior-art-led: the method recovers known findings on a small sample, the static proxy of it did not beat the model, and I do not call any of it novel without that qualification.</p>
+
+  <h2>Credit and references</h2>
+  <p>I was the sole reporter on GHSA-7qjx-gp9h-65qj, and I authored the merged fix in PR #4784 (DCO sign-off, Matteo Panzeri). Thanks to maintainer Maksim Nabokikh, who accepted the report and merged the fix quickly, and who made the calibrated call on severity and CVE. I am a BSc-AI student at the University of Pavia.</p>
+  <ul class="refs">
+    <li>Advisory: dexidp/dex, GHSA-7qjx-gp9h-65qj, CWE-285 Improper Authorization, confirmed High, published 2026-05-20 (<a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj" target="_blank" rel="noopener">github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj</a>).</li>
+    <li>The fix: PR #4784, the seven-line allow-list check on the token-exchange grant plus <code>TestHandleTokenExchangeAllowedConnectors</code>, merged 2026-05-11 (<a href="https://github.com/dexidp/dex/pull/4784" target="_blank" rel="noopener">github.com/dexidp/dex/pull/4784</a>).</li>
+    <li>The measurement: sota_bench, an open model-agnostic benchmark and non-LLM scorer (<a href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">github.com/matte1782/sota-bench</a>).</li>
+    <li>The honest baseline, including the authz loss in full: <a href="../measurement-first/">Measuring whether my method beats a naive frontier-model call</a>.</li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782/sota-bench">sota_bench</a> &nbsp;·&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;·&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>
