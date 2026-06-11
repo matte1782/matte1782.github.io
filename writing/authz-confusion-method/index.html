@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agent tool-dispatch authorization-confusion: a detection method and public instance index · Matteo Panzeri</title>
-<meta name="description" content="A reproducible sibling-diff detection method and a public instance index for agent and MCP tool-dispatch authorization-confusion, mapped onto OWASP API1/API5:2023, CWE-284/285/862/863/639, the confused-deputy concept, and MITRE ATLAS AML.T0053. Systematization of an already-named class, with a runtime PoC oracle and the case studies linked as instances." />
+<title>Incomplete-fix siblings on the AI and agent surface: a class-agnostic sibling-diff detection method and public instance index · Matteo Panzeri</title>
+<meta name="description" content="A reproducible, class-agnostic sibling-diff and incomplete-fix detection method, with a public instance corpus across SSRF, authorization, auth-bypass, and XSS on the fresh AI, agent, and MCP application surface, mapped onto recognized labels (CWE-918, OWASP API1/API5:2023, CWE-284/285/862/863/639, CWE-79, the confused deputy, MITRE ATLAS AML.T0053). Systematization of already-named classes, with a runtime PoC oracle, a measured loss, and the case studies linked as instances. Flagship: open-webui CVE-2026-54008." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="../../assets/fonts/fonts.css" />
 <style>
@@ -87,20 +87,21 @@
 
 <main class="wrap">
 <article>
-  <p class="kicker">Notebook · 2026-06-11</p>
-  <h1>Agent tool-dispatch authorization-confusion: a detection method and a public instance index</h1>
-  <p class="dek">A reproducible sibling-diff procedure and a mapped corpus for authorization-confusion at the agent and MCP tool-dispatch layer. This is not a new bug class. It is an already-named one (OWASP API1/API5:2023, CWE-284/285/862/863/639, the confused deputy, MITRE ATLAS AML.T0053); the contribution is the systematization and a runtime oracle, with the case studies linked as instances.</p>
-  <p class="byline">Matteo Panzeri · AI-for-security research · systematization of a recognized class</p>
+  <p class="kicker">Notebook · 2026-06-11 · rev. 2026-06-12</p>
+  <h1>Incomplete-fix siblings on the AI and agent surface: a class-agnostic sibling-diff detection method and a public instance index</h1>
+  <p class="dek">A reproducible sibling-diff and incomplete-fix procedure, and a mapped corpus, for the residual a security patch leaves behind on the fresh AI, agent, and MCP application surface. These are not new bug classes. They are already-named ones (CWE-918 SSRF, OWASP API1/API5:2023 and CWE-284/285/862/863/639 for authorization, CWE-79 for XSS, the confused deputy, MITRE ATLAS AML.T0053); the contribution is the systematization across them, a runtime oracle, and a measured loss, with the case studies linked as instances.</p>
+  <p class="byline">Matteo Panzeri · AI-for-security research · systematization of recognized classes, one method</p>
 
   <h2>What this page is</h2>
-  <p>This is the connective spine for three pieces of work that already exist: a <a href="../github-mcp-confused-deputy/">cross-user confused deputy in GitHub's own MCP server</a>, a <a href="../dex-token-exchange-connector-acl/">grant that skipped dex's connector allow-list</a>, and a <a href="../measurement-first/">measurement essay</a> that asks whether the method beats a naive frontier-model call. Each of those is a single artifact: one disclosure, one disclosure, one benchmark. This page does not re-derive their code or re-run their experiments. It states the underlying class, the detection <em>method</em> as a reproducible procedure, a taxonomy of its sub-patterns, and a public index of live-published instances mapped onto recognized labels. The case studies are the instances; this is the systematization.</p>
+  <p>This is the connective spine for work that already exists: a <a href="../github-mcp-confused-deputy/">cross-user confused deputy in GitHub's own MCP server</a>, a <a href="../dex-token-exchange-connector-acl/">grant that skipped dex's connector allow-list</a>, and a <a href="../measurement-first/">measurement essay</a> that asks whether the method beats a naive frontier-model call, alongside the public disclosure corpus on the <a href="../../">home page</a>. This page does not re-derive their code or re-run their experiments. It states the detection <em>method</em> as a reproducible procedure, a taxonomy of its sub-patterns, and a public index of live-published instances mapped onto recognized labels. The unifying thread is the method, not a single vulnerability class: the same sibling-diff procedure produced findings across server-side request forgery, authorization, auth-bypass, and cross-site scripting. The case studies are the instances; this is the systematization.</p>
 
-  <h2>The class (prior art)</h2>
-  <p>Nothing on this page is a new vulnerability class. Authorization that should be decided per caller, at the point a tool or agent surface dispatches a privileged action, but is instead skipped, decided on the wrong path, or decided once and reused, is a recognized authorization-confusion / confused-deputy pattern. The honest framing is the one Orange Tsai used for SSRF: he did not invent SSRF; his contribution was the definitive systematization of an inconsistency that was already known. The contribution here is the same shape, a reproducible method plus a public corpus, not the invention of a class. The established labels it maps onto:</p>
+  <h2>The classes, and the honest framing (prior art)</h2>
+  <p>Nothing on this page is a new vulnerability class. A patch for an authorization, request-forgery, or injection bug routinely closes one sink, route, or resource while a sibling path to the same dangerous action survives. That residual, the <em>incomplete-fix sibling</em>, belongs to whichever class the original bug did: a redirect followed without re-validation is SSRF; a check skipped on one dispatch path is authorization-confusion or a confused deputy; an input that reaches a dangerous sink on an unguarded peer is injection. The honest framing is the one Orange Tsai used for SSRF: he did not invent SSRF; his contribution was the definitive systematization of an inconsistency that was already known. The contribution here is the same shape, a reproducible method plus a public corpus and a measured baseline, not the invention of a class. The established labels the instances map onto:</p>
   <ul>
     <li><strong>OWASP API1:2023</strong>, Broken Object Level Authorization (BOLA): an attacker manipulates object identifiers to reach objects belonging to other principals. The cross-user variant of this class is a BOLA at the dispatch layer.</li>
     <li><strong>OWASP API5:2023</strong>, Broken Function Level Authorization (BFLA): a caller reaches a function or action they should not be authorized to invoke; the fix is deny-by-default with explicit grants. The missing-guard variant maps here.</li>
     <li><strong>CWE-284</strong> Improper Access Control (the broad parent), <strong>CWE-285</strong> Improper Authorization (a check absent or performed incorrectly, the broad authorization parent, with <strong>CWE-862</strong> Missing Authorization (a check absent entirely) and <strong>CWE-863</strong> Incorrect Authorization (a check performed but performed wrong) as its missing/incorrect children), and <strong>CWE-639</strong> Authorization Bypass Through User-Controlled Key (the IDOR-style key swap).</li>
+    <li><strong>CWE-918</strong> Server-Side Request Forgery (a server is induced to make a request to an attacker-chosen destination) and <strong>CWE-79</strong> Cross-site Scripting (improper neutralization of input rendered into a page): the request-forgery and injection labels the SSRF and XSS instances below map onto, reached here as incomplete-fix siblings of a prior patch.</li>
     <li>The <strong>confused deputy</strong> itself: Norman Hardy's 1988 note describing a privileged program tricked into misusing its authority on behalf of a less-privileged caller. That is the root concept, and the cross-user instance is a literal one.</li>
     <li><strong>MITRE ATLAS AML.T0053</strong>, AI Agent Tool Invocation: an adversary uses access to an AI agent to invoke tools the agent can reach, including tools not directly accessible to users, to gain increased privilege or data access. The note about tools the user cannot reach directly is exactly the dispatch-layer authorization surface this method targets.</li>
   </ul>
@@ -108,7 +109,7 @@
 
   <h2>The detection method</h2>
   <p>The procedure is deliberately cheap to run and front-loaded with kill gates, so that most candidates die before any proof-of-concept work begins. It has three parts: a starting move, a sequence of gates, and a two-tier oracle.</p>
-  <p><strong>STEP-0, the sibling-diff.</strong> Enumerate the recently-shipped, security-relevant tool-dispatch and agent surfaces in a target. For each candidate action, find the <em>sibling</em> path that already enforces the per-caller authorization that the candidate appears to be missing, decide on the wrong identity, or reuse. Then diff them. The sibling is the control: a peer handler that does the right thing makes the deviation legible and tells you what the correct check looks like. If there is no sibling that enforces it, the surface is probably uniformly missing the check (a different, simpler finding) or the check genuinely lives elsewhere.</p>
+  <p><strong>STEP-0, the sibling-diff.</strong> Start from a recently-merged security fix on a fresh, recognizable target, and enumerate the recently-shipped, security-relevant surfaces around it. For each candidate action, find the <em>sibling</em> path that already enforces the invariant the candidate appears to be missing, decide on the wrong identity, or reuse. Then diff them. The sibling is the control: a peer handler that does the right thing makes the deviation legible and tells you what the correct check looks like. If there is no sibling that enforces it, the surface is probably uniformly missing the check (a different, simpler finding) or the check genuinely lives elsewhere.</p>
   <p><strong>Cheap-kill gates, in order.</strong> Run them in sequence and stop at the first failure:</p>
   <ul>
     <li><strong>Duplicate</strong>: query OSV.dev and the GitHub advisory database for the exact surface. A known, fixed, or already-reported issue is dead here.</li>
@@ -121,70 +122,98 @@
     <li><strong>Tier-A, sibling-control denial</strong>: show the <em>same</em> principal denied on the sibling path, yet reaching the same action through the dispatch surface. The sibling denial is the control that proves the dispatch path is the leak, not a misconfiguration.</li>
     <li><strong>Tier-B, fresh-CSPRNG sentinel</strong>: mint a fresh cryptographically-random sentinel value and drive it through the dispatch sink, then observe it emerge on the wrong side of the boundary. A fresh sentinel rules out replay, caching, and coincidence, and dates the proof.</li>
   </ul>
-  <p>The discriminator of this method is the <em>runtime</em> check, and I am honest about that because I measured it. A static-prompt proxy of the sibling-guard heuristic, the version that reads source rather than tracing the runtime object, <strong>lost</strong> to a naive single frontier-model call on the authorization class (recall <span class="num">0.667</span> versus <span class="num">0.833</span>, a signed &Delta; of <strong><span class="num">&minus;0.167</span></strong> on the pinned set), and the runtime oracle is what recovered the case the static proxy missed, on the subset I could stand up and re-run live. The full measured result, including that loss and which runtime cases were truly live-reran versus settled on recorded evidence, is in the <a href="../measurement-first/">measurement writeup</a>. The method earns its keep at the runtime tier, not the static one, and the index below should be read with that in mind.</p>
+  <p>The discriminator of this method is the <em>runtime</em> check, and I am honest about that because I measured it. A static-prompt proxy of the sibling-guard heuristic, the version that reads source rather than tracing the runtime object, <strong>lost</strong> to a naive single frontier-model call on the authorization class (recall <span class="num">0.667</span> versus <span class="num">0.833</span>, a signed &Delta; of <strong><span class="num">&minus;0.167</span></strong> on the pinned set), and the runtime oracle recovered the case the static proxy missed, on the small subset I could stand up and re-run live; whether that recovery generalizes beyond that subset is not established. The full measured result, including that loss and which runtime cases were truly live-reran versus settled on recorded evidence, is in the <a href="../measurement-first/">measurement writeup</a>. The loss, not the recovery, is the headline: the instrument is credible because it scores its own method honestly, including where the method underperforms a naive call.</p>
 
   <h2>A taxonomy of sub-patterns</h2>
-  <p>The class has several variants, separated by <em>where</em> the authorization decision goes wrong. Each named variant is anchored to a published instance; the variants that I can describe only generically are coordinated disclosures still in progress, and are not pinned to any named target here.</p>
+  <p>The method has several variants, separated by <em>where</em> the residual sits and which invariant the patch failed to extend to it. Each named variant is anchored to a published instance; the variants I can describe only generically are coordinated disclosures still in progress, and are not pinned to any named target here.</p>
   <ul>
+    <li><strong>Incomplete-fix sibling sink.</strong> A patch closed the reported entry points but a peer path to the same dangerous action survives, so the original class persists behind a patched-looking surface. Published instance: <a href="https://github.com/open-webui/open-webui/security/advisories/GHSA-226f-f24g-524w">open-webui CVE-2026-54008</a> (CWE-918 SSRF), where a five-reporter parent fix patched five redirect-following sinks and the method found the sixth, which followed a redirect to an internal target without re-validating it. This is the flagship instance and the canonical shape.</li>
     <li><strong>Cross-user / global-identity confused deputy.</strong> The guard runs, but its identity context is process-global, so one principal's access silently stands in for another's. The deputy acts with authority that is not the caller's. Published instance: <a href="../github-mcp-confused-deputy/">github-mcp-server</a>, where a lockdown-mode access cache was a singleton bound to the first authenticated user's client.</li>
     <li><strong>Guard skipped on a sibling grant or dispatch path.</strong> The check is present and correct on the peer entry points but absent on one of them, so that single path grants what its siblings would deny. Published instance: <a href="../dex-token-exchange-connector-acl/">dex</a>, where the token-exchange grant omitted the connector allow-list check that its sibling OAuth handlers enforce.</li>
-    <li><strong>Guard present on REST, missing on the agent / tool path (generic).</strong> A capability is correctly gated on the conventional API but the newly-shipped agent or tool-dispatch surface reaches the same action without that gate. This is the canonical shape STEP-0 hunts; instances of it are among the coordinated disclosures in progress and are not named here.</li>
-    <li><strong>Incomplete-fix sibling (generic).</strong> A prior fix closed one entry point but a peer path to the same action survives, so the original class persists behind a patched-looking surface. Where this appears in coordinated disclosures still under embargo, it is referred to only generically and added on publication.</li>
+    <li><strong>Validator applied to the wrong value, or only once.</strong> A validator exists but runs on an input other than the one that reaches the sink, or runs a single time before a redirect or a transformation. The SSRF flagship is also an instance of this; the open-webui stored-XSS sibling (<a href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q">GHSA-3wgj-c2hg-vm6q</a>, CWE-79) is another, where a profile-image content allowlist did not cover a sibling write to the same field.</li>
+    <li><strong>Guard present on REST, missing on the agent or tool path (generic).</strong> A capability is correctly gated on the conventional API but the newly-shipped agent or tool-dispatch surface reaches the same action without that gate. This is the canonical agent-surface shape STEP-0 hunts; instances of it are among the coordinated disclosures in progress and are not named here.</li>
   </ul>
 
   <h2>The public instance index</h2>
-  <p>The on-axis published set is honestly thin. On the <em>exact</em> agent and MCP tool-dispatch authorization-confusion axis, the only published, credited instance is github-mcp (co-reported, MEDIUM). dex is the same sibling-diff method on a different surface (an OAuth grant, not MCP), included because the method is identical. Outline and Kirby are listed as clearly-labeled adjacent web-surface instances of the broader authorization-confusion family, not as agent tool-dispatch findings. Further coordinated disclosures are in progress and are added to this index on publication, not before.</p>
+  <p>One method, many classes. The unifying thread is the sibling-diff procedure, not a single CWE. The rows are grouped by severity tier (HIGH, then MEDIUM); a CVSS number is shown only where the advisory itself carries one, and the two self-assessed severities (dex and Outline, neither of which has a CVSS on its advisory) are marked as such. The flagship is the first row, open-webui CVE-2026-54008, the sole-lead HIGH SSRF and the highest published CVSS here, where the method found the redirect sink a five-reporter parent fix missed. One honesty note carried up front: the <em>narrow</em> agent and MCP tool-dispatch authorization sub-axis is still thin (its only published, credited instance is github-mcp, co-reported), and the class-agnostic framing is honest precisely because the flagship is an SSRF, off that narrow axis. Further coordinated disclosures are in progress and are added to this index on publication, not before.</p>
   <table>
     <thead><tr><th>instance</th><th>class label</th><th>sub-pattern</th><th>severity</th><th>identifier</th><th>sibling-diff</th></tr></thead>
     <tbody>
       <tr>
+        <td>open-webui (FLAGSHIP)</td>
+        <td>CWE-918 SSRF</td>
+        <td>incomplete-fix redirect sink</td>
+        <td>HIGH, CVSS 8.5</td>
+        <td><a href="https://github.com/open-webui/open-webui/security/advisories/GHSA-226f-f24g-524w">CVE-2026-54008</a></td>
+        <td>the parent fix patched five redirect sinks; the sixth followed a redirect to an internal target without re-validating</td>
+      </tr>
+      <tr>
+        <td>dex (auth surface)</td>
+        <td>CWE-285 / API5:2023</td>
+        <td>guard skipped on a sibling grant path</td>
+        <td>HIGH, self-assessed (no CVSS or CVE on the advisory; master-only)</td>
+        <td><a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj">GHSA-7qjx-gp9h-65qj</a></td>
+        <td>sibling handlers call <code>isConnectorAllowed</code>; the token-exchange grant did not</td>
+      </tr>
+      <tr>
+        <td>open-webui (XSS sibling)</td>
+        <td>CWE-79 stored XSS</td>
+        <td>validator-bypass on a sibling write</td>
+        <td>HIGH, CVSS 7.3 (no CVE; cite GHSA)</td>
+        <td><a href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q">GHSA-3wgj-c2hg-vm6q</a></td>
+        <td>a profile-image content allowlist did not cover a sibling path writing the same field</td>
+      </tr>
+      <tr>
+        <td>MCP Registry</td>
+        <td>CWE-918 SSRF</td>
+        <td>allowlist bypass (6to4 / NAT64)</td>
+        <td>MEDIUM, CVSS 6.3 (v4)</td>
+        <td><a href="https://github.com/advisories/GHSA-r48c-v28r-pf6v">CVE-2026-44430</a></td>
+        <td>the private-address allowlist did not account for 6to4 and NAT64 address forms</td>
+      </tr>
+      <tr>
         <td>github-mcp-server (CORE, agent/MCP)</td>
-        <td>CWE-284 / API1:2023</td>
+        <td>CWE-284</td>
         <td>cross-user confused deputy</td>
         <td>MEDIUM, CVSS 6.0</td>
         <td><a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349">CVE-2026-48529</a></td>
         <td>per-request clients enforce identity; the singleton access cache reused the first user's client</td>
       </tr>
       <tr>
-        <td>dex (same method, OAuth surface)</td>
-        <td>CWE-285 / API5:2023</td>
-        <td>guard skipped on a sibling grant path</td>
-        <td>HIGH (no CVE; master-only)</td>
-        <td><a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj">GHSA-7qjx-gp9h-65qj</a></td>
-        <td>sibling handlers call <code>isConnectorAllowed</code>; the token-exchange grant did not</td>
+        <td>Kirby (web surface)</td>
+        <td>CWE-862 / API5:2023</td>
+        <td>missing authorization</td>
+        <td>MEDIUM, CVSS 5.3 (v4)</td>
+        <td><a href="https://github.com/getkirby/kirby/security/advisories/GHSA-39vq-49qm-r2mc">CVE-2026-45334</a></td>
+        <td>content-lock info disclosure on a missing authz check; web surface</td>
       </tr>
       <tr>
-        <td>Outline (ADJACENT, web surface)</td>
+        <td>Outline (web surface)</td>
         <td>CWE-639 / API1:2023 (BOLA)</td>
         <td>user-controlled key, cross-tenant</td>
-        <td>MEDIUM</td>
+        <td>MEDIUM per the GHSA (no CVSS on it; NVD lists 7.7)</td>
         <td><a href="https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw">CVE-2026-43890</a></td>
         <td>cross-tenant IDOR in subscription creation; web app, not agent/MCP</td>
-      </tr>
-      <tr>
-        <td>Kirby (ADJACENT, web surface)</td>
-        <td>CWE-862 / API5:2023</td>
-        <td>missing authorization (not confusion)</td>
-        <td>MEDIUM</td>
-        <td><a href="https://github.com/getkirby/kirby/security/advisories/GHSA-39vq-49qm-r2mc">CVE-2026-45334</a></td>
-        <td>content-lock info disclosure on a missing authz check; web surface, adjacent at most</td>
       </tr>
     </tbody>
   </table>
 
   <h2>Honesty and scope</h2>
-  <p>A few things stated plainly so the index is not read as more than it is. The github-mcp finding was <strong>co-reported</strong>: I was credited as a reporter alongside another researcher who reported it independently, and I do not claim sole discovery. Its severity is MEDIUM (CVSS 6.0); dex was assessed HIGH but carries no CVE because the bug existed only on master and no released tag ever shipped it. Both of these severity facts cut both ways, and I keep them visible rather than rounding toward the more impressive number. The page is prior-art-led on purpose: the labels above are recognized, the class is named, and the contribution is systematization, not novelty. The one measured result that bears on the method is a <em>loss</em>, the static proxy losing to a naive model call, and it is linked rather than buried. Outline and Kirby are adjacent web-surface entries, labeled as such, not agent tool-dispatch findings. Finally, the on-axis corpus is genuinely thin today, and several further instances are coordinated disclosures still under embargo; they are referred to only generically here and named when their advisories publish. Those embargoed instances are not yet independently checkable by a reader and are claimed only as forthcoming, not as present evidence, so the verifiable base today is just the published rows in the index above. No statistics on this page are asserted beyond what the cited advisories and the linked measurement record support.</p>
+  <p>A few things stated plainly so the index is not read as more than it is. The flagship open-webui finding is a <strong>sole-lead</strong> HIGH (CVSS 8.5) and a published CVE; the github-mcp finding was <strong>co-reported</strong>, MEDIUM (CVSS 6.0), and I do not claim sole discovery there; dex was assessed HIGH but carries no CVE because the bug existed only on master and no released tag ever shipped it; the open-webui XSS sibling has no CVE assigned and is cited as a GHSA. Two scores here are mine, not an advisory's: dex and Outline carry no CVSS on their GitHub advisories, so dex is shown as self-assessed and Outline at the GHSA's qualitative MEDIUM (NVD separately lists a 7.7 via a GitHub-supplied vector), and neither is presented as a published metric. These severity facts cut both ways, and I keep them visible rather than rounding toward the more impressive number. The page is prior-art-led on purpose: every label above is recognized, the classes are named, and the contribution is systematization across them plus a measured baseline, not novelty. The one measured result that bears on the method is a <em>loss</em>, the static proxy losing to a naive model call, and it is linked rather than buried. The <em>narrow</em> agent and MCP tool-dispatch authorization sub-axis is genuinely thin today (one co-reported MEDIUM); the class-agnostic framing is honest because it does not lean on that axis, the flagship being an SSRF. Several further instances are coordinated disclosures still under embargo; they are referred to only generically here and named when their advisories publish. Those embargoed instances are not yet independently checkable by a reader and are claimed only as forthcoming, not as present evidence, so the verifiable base today is just the published rows in the index above. No statistics on this page are asserted beyond what the cited advisories and the linked measurement record support.</p>
 
   <h2>References</h2>
   <ul class="refs">
     <li>OWASP API Security Top 10, API1:2023 Broken Object Level Authorization (owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/). <a href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>OWASP API Security Top 10, API5:2023 Broken Function Level Authorization (owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/). <a href="https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/" target="_blank" rel="noopener">link &#8599;</a></li>
-    <li>CWE-284 Improper Access Control; CWE-285 Improper Authorization; CWE-862 Missing Authorization; CWE-863 Incorrect Authorization; CWE-639 Authorization Bypass Through User-Controlled Key (cwe.mitre.org). <a href="https://cwe.mitre.org/data/definitions/284.html" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>CWE-284 Improper Access Control; CWE-285 Improper Authorization; CWE-862 Missing Authorization; CWE-863 Incorrect Authorization; CWE-639 Authorization Bypass Through User-Controlled Key; CWE-918 Server-Side Request Forgery; CWE-79 Improper Neutralization of Input During Web Page Generation (cwe.mitre.org). <a href="https://cwe.mitre.org/data/definitions/284.html" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>Hardy, N. "The Confused Deputy: (or why capabilities might have been invented)." ACM SIGOPS Operating Systems Review, Vol. 22, No. 4, pp. 36 to 38, October 1988. DOI 10.1145/54289.871709. <a href="https://dl.acm.org/doi/10.1145/54289.871709" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>MITRE ATLAS, AML.T0053 AI Agent Tool Invocation (canonical atlas-data, modified 2025-11-04). <a href="https://github.com/mitre-atlas/atlas-data" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>Tsai, O. "A New Era of SSRF: Exploiting URL Parsers in Trending Programming Languages." Black Hat USA 2017 (framing analogy for systematization, not a label). <a href="https://www.blackhat.com/us-17/speakers/Orange-Tsai.html" target="_blank" rel="noopener">link &#8599;</a></li>
-    <li>Instance: github-mcp-server, CVE-2026-48529 / GHSA-pjp5-fpmr-3349, CWE-284, fixed 1.1.2 (co-reported). <a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance (FLAGSHIP): open-webui, CVE-2026-54008 / GHSA-226f-f24g-524w, CWE-918 SSRF, sole-lead HIGH (the incomplete-fix redirect sink). <a href="https://github.com/open-webui/open-webui/security/advisories/GHSA-226f-f24g-524w" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>Instance: dex, GHSA-7qjx-gp9h-65qj, CWE-285, fix PR #4784 (master-only, no CVE). <a href="https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance: open-webui, GHSA-3wgj-c2hg-vm6q, CWE-79 stored XSS, sole (no CVE). <a href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance: modelcontextprotocol/registry, CVE-2026-44430 / GHSA-r48c-v28r-pf6v, CWE-918 SSRF (private-address allowlist bypass). <a href="https://github.com/advisories/GHSA-r48c-v28r-pf6v" target="_blank" rel="noopener">link &#8599;</a></li>
+    <li>Instance: github-mcp-server, CVE-2026-48529 / GHSA-pjp5-fpmr-3349, CWE-284, fixed 1.1.2 (co-reported). <a href="https://github.com/github/github-mcp-server/security/advisories/GHSA-pjp5-fpmr-3349" target="_blank" rel="noopener">link &#8599;</a></li>
     <li>The measured static-proxy loss and the runtime oracle: "Measuring whether my method beats a naive frontier-model call" (this site).</li>
     <li>The open benchmark and non-LLM scorer: sota_bench (github.com/matte1782/sota-bench). <a href="https://github.com/matte1782/sota-bench" target="_blank" rel="noopener">link &#8599;</a></li>
   </ul>

@@ -1,26 +1,7 @@
 {
-  "_comment": "Single source of truth for the portfolio's PUBLIC disclosures. Each record renders the site #disclosures row AND a sota-bench README line via tools/generate_disclosures.py. ADD a credit = append one record + run the generator (with --verify). A record renders ONLY if proof.published is true AND it carries a url (fail-closed). NEVER add a finding whose advisory is not live-published: the generator's --verify mode re-checks each proof against the live GitHub state, so an embargoed/triage/un-realized finding cannot ship. Order here is the on-site order: severity score descending.",
+  "_comment": "Single source of truth for the portfolio's PUBLIC disclosures. Each record renders the site #disclosures row AND a sota-bench README line via tools/generate_disclosures.py. ADD a credit = append one record + run the generator (with --verify). A record renders ONLY if proof.published is true AND it carries a url (fail-closed). NEVER add a finding whose advisory is not live-published: the generator's --verify mode re-checks each proof against the live GitHub state, so an embargoed/triage/un-realized finding cannot ship. Order here is the on-site order: highest published CVSS first (the flagship), self-assessed rows kept inside their severity tier. A record whose advisory carries NO published CVSS sets cvss_published:false; the generator then renders the severity tier WITHOUT a numeric chip, so a self-assessed score is never shown as a published metric (the score field is retained for ordering/record-keeping only).",
   "_embargo_rule": "proof.published must be backed by a LIVE state check at publish time (repo security-advisory state==published, OR presence in the GitHub global advisory DB), NEVER a stored string. Findings still in private coordination are intentionally NOT listed here until their advisory or credit actually publishes.",
   "findings": [
-    {
-      "name": "dex",
-      "severity_label": "High",
-      "score": "8.7",
-      "desc": "Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged.",
-      "id_label": "GHSA-7qjx",
-      "url": "https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj",
-      "proof": {
-        "published": true,
-        "type": "repo_advisory",
-        "repo": "dexidp/dex",
-        "ghsa": "GHSA-7qjx-gp9h-65qj",
-        "cve": null,
-        "in_global_db": false,
-        "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Accepted + reporter-credited; no CVE (master-only, no released tag carried the bug). Citation is the repo advisory URL; not in the GitHub global DB by design."
-      }
-    },
     {
       "name": "Open WebUI",
       "severity_label": "High",
@@ -37,8 +18,28 @@
         "in_global_db": false,
         "cve_in_global_db": false,
         "repo_state": "published",
-        "verified_at": "2026-06-11",
-        "note": "Repo advisory published 2026-06-11T18:56:45Z with CVE-2026-54008 (CVSS 8.5, CWE-918 SSRF). matte1782 is the SOLE reporter (state accepted); Classic298 is remediation_developer, NOT a co-reporter (verified via credits_detailed). Incomplete-fix sibling of CVE-2026-45401, whose v0.9.5 fix (five other reporters) patched five redirect sinks; this is the sixth, _process_picture_url. Not yet synced to the GitHub global advisory DB; citation is the public repo advisory URL (anonymous HTTP 200 confirmed 2026-06-11)."
+        "verified_at": "2026-06-12",
+        "note": "Repo advisory published 2026-06-11T18:56:45Z with CVE-2026-54008 (CVSS 8.5, CWE-918 SSRF; CVSS v3 score confirmed on the advisory). matte1782 is the SOLE reporter (state accepted); Classic298 is remediation_developer, NOT a co-reporter (verified via credits_detailed). Incomplete-fix sibling of CVE-2026-45401, whose v0.9.5 fix (five other reporters) patched five redirect sinks; this is the sixth, _process_picture_url. Not yet synced to the GitHub global advisory DB; citation is the public repo advisory URL (anonymous HTTP 200 confirmed 2026-06-11)."
+      }
+    },
+    {
+      "name": "dex",
+      "severity_label": "High",
+      "score": "8.7",
+      "cvss_published": false,
+      "desc": "Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged. Severity self-assessed; the advisory carries no CVSS and no CVE (master-only).",
+      "id_label": "GHSA-7qjx",
+      "url": "https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "dexidp/dex",
+        "ghsa": "GHSA-7qjx-gp9h-65qj",
+        "cve": null,
+        "in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-12",
+        "note": "Accepted + reporter-credited; no CVE (master-only, no released tag carried the bug). The advisory carries NO published CVSS (cvss_v3 and cvss_v4 both null, verified live 2026-06-12); the 8.7 is the author's self-assessment and is NOT rendered as a published metric (cvss_published:false). Citation is the repo advisory URL; not in the GitHub global DB by design."
       }
     },
     {
@@ -56,8 +57,8 @@
         "cve": null,
         "in_global_db": true,
         "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Published in the GitHub global advisory DB (severity high). No CVE assigned yet (cve=null); cite as GHSA, not CVE."
+        "verified_at": "2026-06-12",
+        "note": "Published in the GitHub global advisory DB (severity high, CVSS v3 7.3; CWEs CWE-79 and CWE-20). No CVE assigned yet (cve=null); cite as GHSA, not CVE."
       }
     },
     {
@@ -75,8 +76,8 @@
         "cve": "CVE-2026-44430",
         "in_global_db": true,
         "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Published in the GitHub global advisory DB with CVE-2026-44430."
+        "verified_at": "2026-06-12",
+        "note": "Published in the GitHub global advisory DB with CVE-2026-44430. Score shown is the published CVSS v4 (6.3); the advisory also carries a CVSS v3 of 4.0."
       }
     },
     {
@@ -95,8 +96,8 @@
         "in_global_db": false,
         "cve_in_global_db": false,
         "repo_state": "published",
-        "verified_at": "2026-06-09",
-        "note": "Repo advisory published 2026-06-09 with CVE-2026-48529 (CVSS 6.0, CWE-284 Improper Access Control). Not yet synced to the GitHub global advisory DB (lag, like Outline). matte1782 is a credited reporter, co-reported with hewei-gikaku (not sole discoverer). Citation is the public repo advisory URL (anonymous HTTP 200)."
+        "verified_at": "2026-06-12",
+        "note": "Repo advisory published 2026-06-09 with CVE-2026-48529 (CVSS v3 6.0, CWE-284 Improper Access Control). Not yet synced to the GitHub global advisory DB (lag, like Outline). matte1782 is a credited reporter, co-reported with hewei-gikaku (not sole discoverer). Citation is the public repo advisory URL (anonymous HTTP 200)."
       }
     },
     {
@@ -114,15 +115,16 @@
         "cve": "CVE-2026-45334",
         "in_global_db": true,
         "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Published in the GitHub global advisory DB with CVE-2026-45334."
+        "verified_at": "2026-06-12",
+        "note": "Published in the GitHub global advisory DB with CVE-2026-45334. Score shown is the published CVSS v4 (5.3)."
       }
     },
     {
       "name": "Outline",
       "severity_label": "Mod",
       "score": "4.4",
-      "desc": "Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890.",
+      "cvss_published": false,
+      "desc": "Cross-tenant IDOR in subscription creation on private documents (CWE-639). CVE-2026-43890. Shown at the GHSA's qualitative Medium; the advisory carries no CVSS (NVD separately lists 7.7 via a GitHub-supplied vector).",
       "id_label": "CVE-2026-43890",
       "url": "https://github.com/outline/outline/security/advisories/GHSA-gf8h-cv9v-q4fw",
       "proof": {
@@ -134,8 +136,8 @@
         "in_global_db": false,
         "cve_in_global_db": false,
         "repo_state": "published",
-        "verified_at": "2026-06-08",
-        "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). Citation is the repo advisory URL (solid + published); verify the CVE via NVD before citing the CVE number in isolation."
+        "verified_at": "2026-06-12",
+        "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). The GHSA carries NO CVSS (cvss_v3 and cvss_v4 both null, verified live 2026-06-12); NVD separately lists a CVSS v3 of 7.7 (HIGH) from a GitHub-supplied secondary vector. Shown at the GHSA's qualitative Medium with cvss_published:false; the 4.4 is the author's self-assessment, not rendered. Citation is the repo advisory URL."
       }
     }
   ]

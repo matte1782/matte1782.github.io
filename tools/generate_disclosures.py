@@ -150,13 +150,18 @@ def render_site_rows(findings: list[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for rec in findings:
         url = str(rec["url"])
-        lines.append(
-            f'      <a class="row" href="{url}" target="_blank" rel="noopener">'
-        )
-        lines.append(
-            f'        <span class="sev">{_esc(rec["severity_label"])} '
-            f'<span class="score">{_esc(rec["score"])}</span></span>'
-        )
+        lines.append(f'      <a class="row" href="{url}" target="_blank" rel="noopener">')
+        # A finding whose advisory carries no published CVSS sets
+        # ``cvss_published: false``; we then render the severity tier WITHOUT a
+        # numeric chip, so a self-assessed score is never shown as a published
+        # metric. The ``score`` field is retained for ordering/record-keeping.
+        if rec.get("cvss_published", True):
+            lines.append(
+                f'        <span class="sev">{_esc(rec["severity_label"])} '
+                f'<span class="score">{_esc(rec["score"])}</span></span>'
+            )
+        else:
+            lines.append(f'        <span class="sev">{_esc(rec["severity_label"])}</span>')
         lines.append(
             f'        <span><span class="name">{_esc(rec["name"])}</span>'
             f'<span class="desc">{_esc(rec["desc"])}</span></span>'
@@ -178,10 +183,10 @@ def render_bench_md(findings: list[dict[str, Any]]) -> list[str]:
     for rec in findings:
         ident = _esc(rec["id_label"])
         link = f"[{ident}]({rec['url']})"
-        lines.append(
-            f"| {_esc(rec['name'])} | {_esc(rec['severity_label'])} {_esc(rec['score'])} "
-            f"| {ident} | {link} |"
-        )
+        sev = _esc(rec["severity_label"])
+        if rec.get("cvss_published", True):
+            sev = f"{sev} {_esc(rec['score'])}"
+        lines.append(f"| {_esc(rec['name'])} | {sev} | {ident} | {link} |")
     return lines
 
 
@@ -226,12 +231,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     here = Path(__file__).resolve().parent
     parser.add_argument("--data", default=str(here / "public-findings.json"))
-    parser.add_argument(
-        "--check", action="store_true", help="validate + fail-closed report"
-    )
-    parser.add_argument(
-        "--verify", action="store_true", help="ALSO live-check each proof via gh"
-    )
+    parser.add_argument("--check", action="store_true", help="validate + fail-closed report")
+    parser.add_argument("--verify", action="store_true", help="ALSO live-check each proof via gh")
     parser.add_argument(
         "--render-site", metavar="INDEX_HTML", help="rewrite the site disclosures block"
     )
@@ -256,9 +257,7 @@ def main(argv: list[str] | None = None) -> int:
             if not ok:
                 failed += 1
         if failed:
-            print(
-                f"\nVERIFY FAILED: {failed} record(s) did not match live state; build blocked."
-            )
+            print(f"\nVERIFY FAILED: {failed} record(s) did not match live state; build blocked.")
             return 2
         print("verify ok: every rendered record is live-published.")
 
