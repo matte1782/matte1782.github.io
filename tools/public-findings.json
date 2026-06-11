@@ -24,6 +24,26 @@
     {
       "name": "Open WebUI",
       "severity_label": "High",
+      "score": "8.5",
+      "desc": "Server-side request forgery via an OAuth picture claim (CWE-918): validate_url checks only the initial URL, then aiohttp follows a redirect to an internal target and returns its body through the profile image. Sole-lead; the sixth redirect sink the v0.9.5 parent fix (CVE-2026-45401) missed. CVE-2026-54008.",
+      "id_label": "CVE-2026-54008",
+      "url": "https://github.com/open-webui/open-webui/security/advisories/GHSA-226f-f24g-524w",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "open-webui/open-webui",
+        "ghsa": "GHSA-226f-f24g-524w",
+        "cve": "CVE-2026-54008",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-11",
+        "note": "Repo advisory published 2026-06-11T18:56:45Z with CVE-2026-54008 (CVSS 8.5, CWE-918 SSRF). matte1782 is the SOLE reporter (state accepted); Classic298 is remediation_developer, NOT a co-reporter (verified via credits_detailed). Incomplete-fix sibling of CVE-2026-45401, whose v0.9.5 fix (five other reporters) patched five redirect sinks; this is the sixth, _process_picture_url. Not yet synced to the GitHub global advisory DB; citation is the public repo advisory URL (anonymous HTTP 200 confirmed 2026-06-11)."
+      }
+    },
+    {
+      "name": "Open WebUI",
+      "severity_label": "High",
       "score": "7.3",
       "desc": "Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.",
       "id_label": "GHSA-3wgj",

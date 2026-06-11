@@ -261,6 +261,11 @@
         <span><span class="name">dex</span><span class="desc">Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged.</span></span>
         <span class="id">GHSA-7qjx <span class="arrow">&#8599;</span></span>
       </a>
+      <a class="row" href="https://github.com/open-webui/open-webui/security/advisories/GHSA-226f-f24g-524w" target="_blank" rel="noopener">
+        <span class="sev">High <span class="score">8.5</span></span>
+        <span><span class="name">Open WebUI</span><span class="desc">Server-side request forgery via an OAuth picture claim (CWE-918): validate_url checks only the initial URL, then aiohttp follows a redirect to an internal target and returns its body through the profile image. Sole-lead; the sixth redirect sink the v0.9.5 parent fix (CVE-2026-45401) missed. CVE-2026-54008.</span></span>
+        <span class="id">CVE-2026-54008 <span class="arrow">&#8599;</span></span>
+      </a>
       <a class="row" href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">
         <span class="sev">High <span class="score">7.3</span></span>
         <span><span class="name">Open WebUI</span><span class="desc">Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.</span></span>
