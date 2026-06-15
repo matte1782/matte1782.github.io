@@ -266,6 +266,11 @@
         <span><span class="name">dex</span><span class="desc">Token-exchange endpoint missing per-client connector ACL enforcement (CWE-285). Reporter fix-PR merged. Severity self-assessed; the advisory carries no CVSS and no CVE (master-only).</span></span>
         <span class="id">GHSA-7qjx <span class="arrow">&#8599;</span></span>
       </a>
+      <a class="row" href="https://github.com/langroid/langroid/security/advisories/GHSA-2pq5-3q89-j7cc" target="_blank" rel="noopener">
+        <span class="sev">High</span>
+        <span><span class="name">Langroid</span><span class="desc">Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; reporter-credited, and the 0.65.5 patch extended validation to Cypher and AQL. Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
+        <span class="id">GHSA-2pq5 <span class="arrow">&#8599;</span></span>
+      </a>
       <a class="row" href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">
         <span class="sev">High <span class="score">7.3</span></span>
         <span><span class="name">Open WebUI</span><span class="desc">Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.</span></span>

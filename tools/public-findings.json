@@ -43,6 +43,27 @@
       }
     },
     {
+      "name": "Langroid",
+      "severity_label": "High",
+      "score": "8.1",
+      "cvss_published": false,
+      "desc": "Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; reporter-credited, and the 0.65.5 patch extended validation to Cypher and AQL. Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "id_label": "GHSA-2pq5",
+      "url": "https://github.com/langroid/langroid/security/advisories/GHSA-2pq5-3q89-j7cc",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "langroid/langroid",
+        "ghsa": "GHSA-2pq5-3q89-j7cc",
+        "cve": null,
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-15",
+        "note": "Repo advisory live and published (state=published, verified via gh on 2026-06-15; anonymous HTTP 200 on the advisory URL also confirmed). Severity High per the advisory's qualitative rating; the advisory carries NO CVSS and lists NO CWEs and NO CVE (cve=null), so cvss_published:false (no numeric chip is rendered; the 8.1 is the author's self-assessment, retained for ordering only) and it is cited as a GHSA, not a CVE. NOT in the GitHub global advisory DB (advisories/GHSA-2pq5-3q89-j7cc returns 404), so proof type is repo_advisory and the citation is the repo advisory URL. matte1782 is the credited reporter. Incomplete-fix sibling of CVE-2026-25879 (the SQLChatAgent query-validation fix) found by sibling-diff; maintainer Prasad Chalasani (@pchalasani) shipped 0.65.5 and, on the reporter's follow-up, extended validation to cover Cypher and AQL (ArangoDB), not just the reported Neo4j path."
+      }
+    },
+    {
       "name": "Open WebUI",
       "severity_label": "High",
       "score": "7.3",
