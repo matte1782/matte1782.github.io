@@ -120,6 +120,21 @@ def verify_record_live(rec: dict[str, Any]) -> tuple[bool, str]:
     proof = rec.get("proof") or {}
     ghsa = proof.get("ghsa")
     repo = proof.get("repo")
+    if proof.get("type") == "pr_merged":
+        # A credited upstream FIX (not an advisory): the proof is that the PR is
+        # live-merged AND its body carries the reporter credit. Fail-closed on both.
+        pr = proof.get("pr")
+        credit = proof.get("credit")
+        if not (repo and pr):
+            return False, "pr_merged proof needs repo + pr"
+        ok, merged = _gh_json([f"repos/{repo}/pulls/{pr}", "--jq", ".merged"])
+        if not (ok and merged == "true"):
+            return False, f"PR {repo}#{pr} not merged: {merged!r}"
+        if credit:
+            ok2, body = _gh_json([f"repos/{repo}/pulls/{pr}", "--jq", ".body"])
+            if not (ok2 and credit.lower() in (body or "").lower()):
+                return False, f"credit {credit!r} not in merged PR {repo}#{pr} body"
+        return True, f"PR merged + credit present ({repo}#{pr})"
     if not ghsa:
         return False, "proof has no ghsa to verify"
     if proof.get("in_global_db") is True:
@@ -150,7 +165,9 @@ def render_site_rows(findings: list[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for rec in findings:
         url = str(rec["url"])
-        lines.append(f'      <a class="row" href="{url}" target="_blank" rel="noopener">')
+        lines.append(
+            f'      <a class="row" href="{url}" target="_blank" rel="noopener">'
+        )
         # A finding whose advisory carries no published CVSS sets
         # ``cvss_published: false``; we then render the severity tier WITHOUT a
         # numeric chip, so a self-assessed score is never shown as a published
@@ -161,7 +178,9 @@ def render_site_rows(findings: list[dict[str, Any]]) -> list[str]:
                 f'<span class="score">{_esc(rec["score"])}</span></span>'
             )
         else:
-            lines.append(f'        <span class="sev">{_esc(rec["severity_label"])}</span>')
+            lines.append(
+                f'        <span class="sev">{_esc(rec["severity_label"])}</span>'
+            )
         lines.append(
             f'        <span><span class="name">{_esc(rec["name"])}</span>'
             f'<span class="desc">{_esc(rec["desc"])}</span></span>'
@@ -231,8 +250,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     here = Path(__file__).resolve().parent
     parser.add_argument("--data", default=str(here / "public-findings.json"))
-    parser.add_argument("--check", action="store_true", help="validate + fail-closed report")
-    parser.add_argument("--verify", action="store_true", help="ALSO live-check each proof via gh")
+    parser.add_argument(
+        "--check", action="store_true", help="validate + fail-closed report"
+    )
+    parser.add_argument(
+        "--verify", action="store_true", help="ALSO live-check each proof via gh"
+    )
     parser.add_argument(
         "--render-site", metavar="INDEX_HTML", help="rewrite the site disclosures block"
     )
@@ -257,7 +280,9 @@ def main(argv: list[str] | None = None) -> int:
             if not ok:
                 failed += 1
         if failed:
-            print(f"\nVERIFY FAILED: {failed} record(s) did not match live state; build blocked.")
+            print(
+                f"\nVERIFY FAILED: {failed} record(s) did not match live state; build blocked."
+            )
             return 2
         print("verify ok: every rendered record is live-published.")
 

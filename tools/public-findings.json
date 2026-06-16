@@ -160,6 +160,27 @@
         "verified_at": "2026-06-12",
         "note": "Repo advisory is published with CVE-2026-43890 assigned, but the CVE is ABSENT from the GitHub global advisory DB (known discrepancy). The GHSA carries NO CVSS (cvss_v3 and cvss_v4 both null, verified live 2026-06-12); NVD separately lists a CVSS v3 of 7.7 (HIGH) from a GitHub-supplied secondary vector. Shown at the GHSA's qualitative Medium with cvss_published:false; the 4.4 is the author's self-assessment, not rendered. Citation is the repo advisory URL."
       }
+    },
+    {
+      "name": "Google MCP Toolbox",
+      "severity_label": "Mod",
+      "score": "4.0",
+      "cvss_published": false,
+      "desc": "Credited reporter on a MERGED FIX (not an advisory; no GHSA/CVE): allowedDatasets scope-bypass in the BigQuery forecast / analyze-contribution tools of Google's MCP Toolbox. The Google maintainer merged the fix and credited the report in the PR body. Severity self-assessed.",
+      "id_label": "PR #3324",
+      "url": "https://github.com/googleapis/mcp-toolbox/pull/3324",
+      "proof": {
+        "published": true,
+        "type": "pr_merged",
+        "repo": "googleapis/mcp-toolbox",
+        "pr": 3324,
+        "credit": "matte1782",
+        "cve": null,
+        "in_global_db": false,
+        "merged": true,
+        "verified_at": "2026-06-16",
+        "note": "Public PR googleapis/mcp-toolbox#3324, merged 2026-06-04 into main by @duwenxin99; the merged PR body credits 'Reported by: Matteo Panzeri @matte1782'. No GHSA/CVE (the repo has no published security-advisories). Scoped to the public allowedDatasets-bypass fix ONLY; the broader email-coordinated report is deliberately NOT represented here. The --verify gate live-checks repos/googleapis/mcp-toolbox/pulls/3324 .merged == true AND that 'matte1782' is present in the PR body, fail-closed."
+      }
     }
   ]
 }
