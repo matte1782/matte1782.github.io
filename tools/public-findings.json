@@ -64,6 +64,27 @@
       }
     },
     {
+      "name": "ouroboros",
+      "severity_label": "High",
+      "score": "7.5",
+      "cvss_published": false,
+      "desc": "Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "id_label": "GHSA-jv2h",
+      "url": "https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "Q00/ouroboros",
+        "ghsa": "GHSA-jv2h-4p9v-wf5w",
+        "cve": null,
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-18",
+        "note": "Repo advisory published 2026-06-18T14:21:06Z (state=published, verified via gh + anonymous HTTP 200 on the advisory URL). HIGH, no CVSS numeric and no CVE (cve=null) -> cvss_published:false (the 7.5 is a self-assessment for ordering only), cited as a GHSA. NOT in the global advisory DB (404), so proof type is repo_advisory. CO-REPORTED: credits_detailed lists matte1782 AND hackkim, both state=accepted, type=reporter -> framed as co-credit, not sole. Incomplete fix of CVE-2026-47211 (untrusted project .env -> RCE): execution-routing keys omitted from _UNTRUSTED_ENV_DENYLIST; fixed in ouroboros-ai 0.42.1."
+      }
+    },
+    {
       "name": "Open WebUI",
       "severity_label": "High",
       "score": "7.3",
