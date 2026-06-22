@@ -85,6 +85,27 @@
       }
     },
     {
+      "name": "agenticmail",
+      "severity_label": "High",
+      "score": "7.4",
+      "cvss_published": false,
+      "desc": "Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "id_label": "GHSA-fq4x",
+      "url": "https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "agenticmail/agenticmail",
+        "ghsa": "GHSA-fq4x-789w-jg5h",
+        "cve": null,
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-06-22",
+        "note": "Repo advisory published 2026-06-18T04:54:31Z (state=published, withdrawn_at=null; verified via gh + anonymous HTTPS 200 on the advisory URL on 2026-06-22). HIGH, config-conditional; the advisory carries NO CVSS numeric (cvss_v3/v4 null) and NO CVE -> cvss_published:false (the 7.4 is a self-assessment for ordering only, matching the advisory's ~7.0 floor), cited as a GHSA. NOT in the GitHub global advisory DB. matte1782 is the SOLE accepted reporter (credits_detailed); owner agenticmail is a third-party Organization (matte1782 is not a member), maintainer ope-olatunji published it -> independent external report, not self-credit. CWE-306 missing-authentication on the inbound-mail bridge-wake path (resumes the operator's Claude Code session in bypassPermissions mode with no sender gate) while the sibling operator-query hook authenticates the sender; sibling-diff incomplete-authentication on the AI-agent surface. PoC is own-instance-only per the advisory."
+      }
+    },
+    {
       "name": "Open WebUI",
       "severity_label": "High",
       "score": "7.3",
