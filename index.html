@@ -271,6 +271,11 @@
         <span><span class="name">Langroid</span><span class="desc">Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; reporter-credited, and the 0.65.5 patch extended validation to Cypher and AQL. Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
         <span class="id">GHSA-2pq5 <span class="arrow">&#8599;</span></span>
       </a>
+      <a class="row" href="https://github.com/traefik/traefik/security/advisories/GHSA-x677-9fxg-v5c5" target="_blank" rel="noopener">
+        <span class="sev">High</span>
+        <span><span class="name">traefik</span><span class="desc">Header-field underscore-variant identity spoofing in BasicAuth / DigestAuth / ForwardAuth: the auth middlewares treat an underscore header variant inconsistently, enabling identity spoofing / auth bypass. Incomplete-fix / cross-cohort sibling of CVE-2026-33433 + CVE-2026-39858. Sole reporter. CVE-2026-54763.</span></span>
+        <span class="id">CVE-2026-54763 <span class="arrow">&#8599;</span></span>
+      </a>
       <a class="row" href="https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w" target="_blank" rel="noopener">
         <span class="sev">High</span>
         <span><span class="name">ouroboros</span><span class="desc">Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
@@ -278,8 +283,8 @@
       </a>
       <a class="row" href="https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h" target="_blank" rel="noopener">
         <span class="sev">High</span>
-        <span><span class="name">agenticmail</span><span class="desc">Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
-        <span class="id">GHSA-fq4x <span class="arrow">&#8599;</span></span>
+        <span><span class="name">agenticmail</span><span class="desc">Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. GitHub issued CVE-2026-57495 (repo-published; pending NVD sync). Severity self-assessed; the advisory carries no CVSS.</span></span>
+        <span class="id">CVE-2026-57495 <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">
         <span class="sev">High <span class="score">7.3</span></span>

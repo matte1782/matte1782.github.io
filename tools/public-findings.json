@@ -64,6 +64,27 @@
       }
     },
     {
+      "name": "traefik",
+      "severity_label": "High",
+      "score": "7.5",
+      "cvss_published": false,
+      "desc": "Header-field underscore-variant identity spoofing in BasicAuth / DigestAuth / ForwardAuth: the auth middlewares treat an underscore header variant inconsistently, enabling identity spoofing / auth bypass. Incomplete-fix / cross-cohort sibling of CVE-2026-33433 + CVE-2026-39858. Sole reporter. CVE-2026-54763.",
+      "id_label": "CVE-2026-54763",
+      "url": "https://github.com/traefik/traefik/security/advisories/GHSA-x677-9fxg-v5c5",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "traefik/traefik",
+        "ghsa": "GHSA-x677-9fxg-v5c5",
+        "cve": "CVE-2026-54763",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-07-03",
+        "note": "Repo advisory published 2026-07-01T15:21:52Z (state=published, withdrawn_at=null; verified via gh + anonymous HTTPS 200 on the advisory URL on 2026-07-03). HIGH; the advisory carries NO CVSS numeric (cvss.score null) -> cvss_published:false (the 7.5 is a self-assessment for ordering only). CVE-2026-54763 was issued and is shown on the repo advisory, but is NOT yet in NVD (totalResults 0) nor the GitHub global advisory DB (404) as of 2026-07-03 -> cve_in_global_db:false; proof type is repo_advisory, citation is the public repo advisory URL. matte1782 is the SOLE accepted reporter (credits_detailed). Incomplete-fix / cross-cohort sibling of CVE-2026-33433 + CVE-2026-39858 (header underscore-variant identity spoofing in BasicAuth/DigestAuth/ForwardAuth)."
+      }
+    },
+    {
       "name": "ouroboros",
       "severity_label": "High",
       "score": "7.5",
@@ -89,20 +110,20 @@
       "severity_label": "High",
       "score": "7.4",
       "cvss_published": false,
-      "desc": "Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. Severity self-assessed; the advisory carries no CVSS and no CVE.",
-      "id_label": "GHSA-fq4x",
+      "desc": "Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. GitHub issued CVE-2026-57495 (repo-published; pending NVD sync). Severity self-assessed; the advisory carries no CVSS.",
+      "id_label": "CVE-2026-57495",
       "url": "https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h",
       "proof": {
         "published": true,
         "type": "repo_advisory",
         "repo": "agenticmail/agenticmail",
         "ghsa": "GHSA-fq4x-789w-jg5h",
-        "cve": null,
+        "cve": "CVE-2026-57495",
         "in_global_db": false,
         "cve_in_global_db": false,
         "repo_state": "published",
         "verified_at": "2026-06-22",
-        "note": "Repo advisory published 2026-06-18T04:54:31Z (state=published, withdrawn_at=null; verified via gh + anonymous HTTPS 200 on the advisory URL on 2026-06-22). HIGH, config-conditional; the advisory carries NO CVSS numeric (cvss_v3/v4 null) and NO CVE -> cvss_published:false (the 7.4 is a self-assessment for ordering only, matching the advisory's ~7.0 floor), cited as a GHSA. NOT in the GitHub global advisory DB. matte1782 is the SOLE accepted reporter (credits_detailed); owner agenticmail is a third-party Organization (matte1782 is not a member), maintainer ope-olatunji published it -> independent external report, not self-credit. CWE-306 missing-authentication on the inbound-mail bridge-wake path (resumes the operator's Claude Code session in bypassPermissions mode with no sender gate) while the sibling operator-query hook authenticates the sender; sibling-diff incomplete-authentication on the AI-agent surface. PoC is own-instance-only per the advisory."
+        "note": "Repo advisory published 2026-06-18T04:54:31Z (state=published, withdrawn_at=null; verified via gh + anonymous HTTPS 200 on the advisory URL on 2026-06-22). HIGH, config-conditional; the advisory carries NO CVSS numeric (cvss_v3/v4 null) and NO CVE -> cvss_published:false (the 7.4 is a self-assessment for ordering only, matching the advisory's ~7.0 floor), cited as a GHSA. NOT in the GitHub global advisory DB. matte1782 is the SOLE accepted reporter (credits_detailed); owner agenticmail is a third-party Organization (matte1782 is not a member), maintainer ope-olatunji published it -> independent external report, not self-credit. CWE-306 missing-authentication on the inbound-mail bridge-wake path (resumes the operator's Claude Code session in bypassPermissions mode with no sender gate) while the sibling operator-query hook authenticates the sender; sibling-diff incomplete-authentication on the AI-agent surface. PoC is own-instance-only per the advisory. UPDATE 2026-07-03: GitHub issued CVE-2026-57495 for this advisory (shown on the repo advisory); NOT yet in NVD (totalResults 0) nor propagated to the global-DB record (cve null there) -> cve_in_global_db:false, still cited as repo_advisory."
       }
     },
     {
