@@ -286,6 +286,11 @@
         <span><span class="name">agenticmail</span><span class="desc">Unauthenticated inbound mail triggers a bypassPermissions resume of the operator's Claude Code session (bridge-wake) with no sender gate, while the sibling operator-query hook authenticates the sender (CWE-306). Found by sibling-diff: the wake path omits the authentication the query path enforces. Config-conditional (headless bridge + a fresh host session + the model obeying the injected content), not a deterministic RCE primitive. Sole reporter; maintainer-published. GitHub issued CVE-2026-57495 (repo-published; pending NVD sync). Severity self-assessed; the advisory carries no CVSS.</span></span>
         <span class="id">CVE-2026-57495 <span class="arrow">&#8599;</span></span>
       </a>
+      <a class="row" href="https://github.com/triggerdotdev/trigger.dev/security/advisories/GHSA-9fq3-68cw-r7p2" target="_blank" rel="noopener">
+        <span class="sev">High</span>
+        <span><span class="name">trigger.dev</span><span class="desc">Cross-tenant task replay via missing per-resource authorization on the replay endpoints (CWE-862/639): a caller could replay another tenant's task run. Found on the authorization surface by sibling-diff. Co-credited reporter (with Wernerina); maintainer-published. Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
+        <span class="id">GHSA-9fq3 <span class="arrow">&#8599;</span></span>
+      </a>
       <a class="row" href="https://github.com/advisories/GHSA-3wgj-c2hg-vm6q" target="_blank" rel="noopener">
         <span class="sev">High <span class="score">7.3</span></span>
         <span><span class="name">Open WebUI</span><span class="desc">Stored XSS via an OAuth picture claim stored as an SVG data URI (CWE-79). Patched 0.9.5.</span></span>

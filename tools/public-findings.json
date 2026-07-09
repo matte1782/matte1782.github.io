@@ -127,6 +127,27 @@
       }
     },
     {
+      "name": "trigger.dev",
+      "severity_label": "High",
+      "score": "7.3",
+      "cvss_published": false,
+      "desc": "Cross-tenant task replay via missing per-resource authorization on the replay endpoints (CWE-862/639): a caller could replay another tenant's task run. Found on the authorization surface by sibling-diff. Co-credited reporter (with Wernerina); maintainer-published. Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "id_label": "GHSA-9fq3",
+      "url": "https://github.com/triggerdotdev/trigger.dev/security/advisories/GHSA-9fq3-68cw-r7p2",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "triggerdotdev/trigger.dev",
+        "ghsa": "GHSA-9fq3-68cw-r7p2",
+        "cve": null,
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-07-09",
+        "note": "Repo advisory published 2026-07-09T14:01:49Z (state=published, withdrawn_at=null; verified via gh + anonymous HTTP 200 on the advisory URL 2026-07-09). HIGH (advisory summary: 'Cross-tenant task replay via missing authorization in replay endpoints', CWE-862/639); the advisory carries NO CVSS numeric and NO CVE -> cvss_published:false (the 7.3 is a self-assessment for ordering only), cited as a GHSA. NOT in the global advisory DB. CO-REPORTED: credits_detailed lists matte1782 AND Wernerina, both state=accepted, type=reporter -> framed as co-credit, not sole. trigger.dev is a third-party org (matte1782 not a member); maintainer-published -> independent external report."
+      }
+    },
+    {
       "name": "Open WebUI",
       "severity_label": "High",
       "score": "7.3",
