@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Population-scale content scanning, measured · Matteo Panzeri</title>
+<meta name="description" content="A reproducible case study on population-scale content scanning (CSAM perceptual-hash example). Base-rate collapse modelled and its false-match premise measured; the evasion 'contradiction' tested fairly on a deployed hash (PDQ) plus open ones, hash-dependent and mostly a measurement artifact. Plus the record of the errors four adversarial red-team passes caught in my own numbers before publication." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  .note{font-size:14.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  td .num{font-family:var(--mono)}
+  .caption{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 24px}
+
+  .aside{border:1px solid var(--line); border-left:2px solid var(--signal-soft); background:var(--panel); border-radius:8px; padding:22px 24px; margin:28px 0}
+  .aside .tag{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px}
+  .aside p{font-size:15.5px; color:#cbc8c0; margin:0 0 12px} .aside p:last-child{margin:0}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Case study &middot; 2026-07-12</p>
+  <h1>Population-scale content scanning, measured</h1>
+  <p class="dek">Two numbers decide whether a population-scale detector helps or harms: how often it flags the innocent, and how easily a sender slips past. Both are usually asserted, not measured. I measured them on the CSAM perceptual-hash example, on a <em>deployed</em> hash plus open ones, and had four adversarial passes try to break my own numbers first. Three of them succeeded.</p>
+  <p class="byline">Matteo Panzeri &middot; AI-for-security research</p>
+
+  <p class="note">Written with AI assistance and human primary-source verification; the adversarial audits referenced were independent adversarial LLM passes, not third-party review. Every legislative and technical claim carries a primary source; all code, per-image data (CSV), dependency versions and fixed seeds are published. Perceptual-hash experiments were run on benign standard test images only.</p>
+
+  <h2>The claim</h2>
+  <p>When a machine-learning classifier or perceptual hash is deployed to scan an entire population&rsquo;s private messages for child-sexual-abuse material (CSAM), policy-violating content, or jailbreaks, two questions decide whether it helps or harms: how often it flags the innocent, and how easily a motivated sender slips past. As the recent EU &ldquo;chat control&rdquo; debate (dated note at the end) shows, both are loudly mis-stated from both directions. This piece <strong>models</strong> the first and <strong>measures</strong> its binding input, then <strong>measures</strong> the second, on the CSAM-scanning example, with open code. The honest answer turns on two axes people leave unstated: the flag-rate scales with <strong>prevalence and population scale</strong>, and evasion scales with <strong>attacker effort and the specific hash</strong>. Neither &ldquo;it works&rdquo; nor &ldquo;it&rsquo;s trivially broken&rdquo; survives contact with them.</p>
+
+  <h2>1 &middot; Base-rate collapse: even a good detector floods the innocent</h2>
+  <p>Detection accuracy is not what matters at scale; the base rate is. Let PPV be the probability that a flagged message is genuinely target material. By Bayes, <code>PPV = (&pi;&middot;TPR) / (&pi;&middot;TPR + (1&minus;&pi;)&middot;FPR)</code>, where &pi; is prevalence and FPR the per-message false-positive rate. With a generous true-positive rate (TPR&nbsp;=&nbsp;0.9), the model prints where PPV lives and where it reverses:</p>
+  <table>
+    <thead><tr><th>prevalence &pi;</th><th>FPR 1e&minus;3</th><th>FPR 1e&minus;4</th><th>FPR 1e&minus;6</th></tr></thead>
+    <tbody>
+      <tr><td>1e&minus;4</td><td class="num">8.3%</td><td class="num">47.4%</td><td class="num">98.9%</td></tr>
+      <tr><td>1e&minus;5</td><td class="num">0.9%</td><td class="num">8.3%</td><td class="num">90.0%</td></tr>
+      <tr><td>1e&minus;6</td><td class="num">0.09%</td><td class="num">0.9%</td><td class="num">47.4%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">PPV = share of flags that are genuinely target material, TPR = 0.9. Output of <code>base_rate_model.py</code>.</p>
+  <p>The binding premise is the per-message FPR. In the believed regime (FPR of roughly 1e&minus;3 to 1e&minus;4) PPV stays low: at &pi;&nbsp;=&nbsp;1e&minus;5 and FPR&nbsp;1e&minus;3, PPV&nbsp;&asymp;&nbsp;0.9%, i.e. roughly 99 in 100 flags are innocent people. The result reverses only at FPR&nbsp;&le;&nbsp;1e&minus;6 <strong>and</strong> higher prevalence, so it depends on the (&pi;,&nbsp;FPR) pair and is shown, not asserted.</p>
+  <p><strong>Is that FPR regime real, or convenient?</strong> To stop assuming it, I measured a per-comparison false-match rate directly: over all 124,750 pairs of 500 benign natural images (BSDS500), how often do two <em>different</em> images collide within a hash&rsquo;s deployed match threshold? The pairs are not independent (each image is in 499 of them, which a naive interval ignores), so the confidence intervals below are image-level bootstraps:</p>
+  <table>
+    <thead><tr><th>hash</th><th>match thr</th><th>false-match rate</th><th>boot 95%</th></tr></thead>
+    <tbody>
+      <tr><td>dHash (open, 64-bit)</td><td class="num">16</td><td class="num">1.4e&minus;3</td><td class="num">[8.4e&minus;4, 2.1e&minus;3]</td></tr>
+      <tr><td>pHash (open, 64-bit)</td><td class="num">16</td><td class="num">1.8e&minus;4</td><td class="num">[8.0e&minus;5, 3.3e&minus;4]</td></tr>
+      <tr><td>PDQ (deployed, 256-bit)</td><td class="num">31</td><td class="num">0 / 124750</td><td class="num">&lt; 3e&minus;5</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">Per-comparison false-match rate on benign pairs. Output of <code>perceptual_hash_boundary_v2.py</code>. Open-hash intervals are image-level bootstraps; PDQ&rsquo;s zero-count bound is a rule-of-3 estimate (~3e&minus;5) that assumes independence and so under-states the true upper bound.</p>
+  <p>This <strong>empirically lower-bounds</strong> the model&rsquo;s FPR input for the open hashes: dHash sits solidly in the base-rate-collapse regime (&ge; 1e&minus;4 even at its CI floor); pHash&rsquo;s interval <em>straddles</em> 1e&minus;4, so I can&rsquo;t claim it is squarely inside. Two honest caveats keep this from being oversold. First, this is a <em>per-comparison</em> rate; the model&rsquo;s <em>per-message</em> FPR is roughly this times the size of the known-bad database (a benign image is checked against every entry), so the measurement is a floor, not the deployed rate. Second, the one <em>deployed</em> hash tested, PDQ, produced zero false matches, so its per-comparison rate is below what 124,750 pairs can resolve. The flooding argument is therefore strongest for the open 64-bit class and, for PDQ, rests on database-scale compounding I did not measure. (For scale: Farid, PhotoDNA&rsquo;s co-creator, has cited a ~1-in-50-billion false-match rate in 2019, a figure whose derivation was never published and never independently verified.)</p>
+  <p>Absolute harm, unlike PPV, is not scale-invariant: at, conservatively, ten billion private messages a day (an order-of-magnitude assumption; WhatsApp alone reports ~100B), even a 1e&minus;4 rate flags on the order of a <strong>million innocent messages daily</strong>. An independent real-world anchor, precisely labeled: in Ireland (2020), of 4,192 NCMEC referrals, 852 (20.3%) were <em>marked as</em> CAM, 409 (9.7%) <em>actionable</em>, and 265 (6.3%) <em>completed cases</em>, all from a pipeline already enriched by hash-matching plus human triage, so a later stage than the model&rsquo;s raw PPV and <strong>not</strong> a validation of it (&ldquo;completed&rdquo; is the Garda&rsquo;s own case-marking, not prosecutions, which per the ICCL were not retained).</p>
+
+  <h2>2 &middot; The evasion boundary: a fair test, on a deployed hash</h2>
+  <p>The academic record looks contradictory. Jain, Cre&#539;u &amp; de Montjoye (USENIX Security 2022) report black-box attacks evading perceptual-hash detection on <strong>&gt;99.9%</strong> of images. Madden, Bhavsar, Dorje &amp; Li (NeurIPS 2024 workshop, arXiv:2406.00918) find, &ldquo;contrary to existing literature &hellip; these [algorithms] demonstrate significant robustness,&rdquo; attributing high evasion figures to &ldquo;the random hash variations characteristic of&rdquo; perceptual hashes. Both are verified to primary source, and both can hold, because &ldquo;evasion rate&rdquo; is under-specified.</p>
+  <p>I measured it on two open hashes (pHash, dHash; 64-bit) and, crucially, on <strong>PDQ</strong>, Meta&rsquo;s 256-bit hash actually deployed for content matching (open-source; match threshold &le;31). The essential control is a <strong>query-budget-matched</strong> random baseline: an attacker making N guided queries is compared against N random ones. Over 100 benign images, five seeds, one-sided paired tests with Holm correction, the result is <strong>hash-dependent</strong>:</p>
+  <ul>
+    <li><strong>dHash (a difference hash)</strong> is genuinely attackable: a directed advantage over matched random survives correction across all five seeds <em>even at an invisible budget</em>, grows with query count (emerging by ~150 queries and rising to ~+1.7 bits), and becomes operationally real at a visible budget (19 of 100 images pushed past the threshold vs 5 for random). This is the Jain direction.</li>
+    <li><strong>pHash (a DCT hash)</strong> shows <em>no</em> advantage at any budget (the directed attack is, if anything, <em>worse</em> than random search), and this holds even when I strengthen the attack with eight random restarts (0 of 100 evade). Genuine robustness to a simple attacker. The Madden direction.</li>
+    <li><strong>PDQ (the deployed DCT hash)</strong> is the honest middle. The simple attack showed no advantage; a <em>stronger</em> restart attack does find a real directed signal (p&nbsp;&lt;&nbsp;1e&minus;4), so PDQ&rsquo;s apparent robustness to the weak attack was partly an artifact of a weak optimizer, not the hash. But the signal is only ~+1.6 bits against a 31-bit threshold margin, so <strong>0 of 100 images evade at an invisible budget</strong>. Operationally Madden; mechanistically not zero-signal.</li>
+  </ul>
+  <p><strong>What about the &ldquo;hash is naturally unstable&rdquo; explanation?</strong> Decomposing benign transforms (JPEG-50, 0.9&times; resize, &times;1.1 brightness, a 2&deg; rotation), the instability is almost entirely the <strong>rotation</strong>: JPEG/resize/brightness move every hash by under a bit or two, while a 2&deg; rotation moves PDQ ~36 bits (past its threshold for 74 of 100 images). An adversarial pass flagged that this could be an artifact of black corners from the rotation fill; re-running with edge-extension instead cut it (from 43 to 36 bits) but the effect <em>persisted</em>, so PDQ&rsquo;s small-angle rotation sensitivity is real, and it is <em>not</em> covered by the dihedral (90&deg;) database augmentation deployments use. That is a genuine residual gap, and it means less of the &ldquo;evasion&rdquo; at invisible budgets can be waved away as natural noise than the naive story assumes.</p>
+
+  <h2>Limits, stated as the study&rsquo;s spine</h2>
+  <ul class="limits">
+    <li>The attack is a simple greedy search (with restarts), a <strong>lower bound</strong>. A stronger attack shifts the curves left; &ldquo;a simple attacker, fairly compared, does not evade the DCT hashes at an invisible budget&rdquo; is the claim, not &ldquo;the hash is robust.&rdquo;</li>
+    <li>The &ldquo;DCT resists / difference-hash is attackable&rdquo; split is a <strong>correlation across three algorithms</strong> (two DCT, one difference), confounded with bit-length (PDQ is 256-bit), not a validated causal mechanism. Two DCT hashes cannot establish a class property.</li>
+    <li>pHash/dHash are open; the deployed hash tested is <strong>PDQ</strong>. <strong>PhotoDNA and NeuralHash are not tested</strong> (PhotoDNA is not even Hamming-comparable, and NeuralHash is excluded by risk posture), and nothing transfers to those two.</li>
+    <li>The false-match rate is per-comparison, not per-message; 100 images for evasion, 124,750 pairs for FPR; PDQ&rsquo;s true low rate is below resolution.</li>
+  </ul>
+
+  <h2>3 &middot; What the data do and do not show</h2>
+  <p>A &ldquo;working&rdquo; detector still floods the innocent at population scale, and the sensational evasion figures require an unstated strong-attacker, high-query, specific-hash setting. The data do <strong>not</strong> show &ldquo;detectors are broken,&rdquo; and do not crown Jain over Madden: the verdict is genuinely split by hash. <strong>The base-rate structure generalizes</strong> to any population-scale content-scanning classifier (moderation, jailbreak and safety filters share the low-prevalence, high-volume shape); <strong>the evasion result is perceptual-hash-specific and does not.</strong> The contribution is methodological: a reproducible way to force the question into its real variables (prevalence, scale, query budget, hash architecture, perturbation visibility) and watch the answer move.</p>
+
+  <h2>How I red-teamed my own numbers</h2>
+  <p>Most analyses show you their conclusions. This one shows the process, because on this topic the process caught me being wrong repeatedly before anything was published, and which errors a method catches is more informative than which conclusions it reaches. Every claim was verified against a primary source in <em>both</em> directions, and each artifact was handed to independent adversarial passes whose job was to break it. Four such passes (statistics, overclaim, code-correctness, factual) ran on the measurement itself; here are the load-bearing catches.</p>
+  <ul>
+    <li><strong>My headline was refuted by my own table.</strong> An early draft asserted the base-rate result &ldquo;does not depend on any contested number&rdquo;; the model&rsquo;s own printout showed PPV climbing above 90% in one corner of the grid. The result is now stated conditionally, with the model printing exactly where it reverses.</li>
+    <li><strong>A hidden confound reversed a provisional finding.</strong> My first evasion read compared a 300-query attack against a 6-query random baseline (best-of-300 vs worst-of-6). Under a query-budget-matched baseline with corrected statistics, the advantage vanished for the DCT hashes; I then turned the residual limitation into the study by sweeping attack strength.</li>
+    <li><strong>My real-world anchor was mislabeled.</strong> I had cited Ireland&rsquo;s 20.3% as an &ldquo;actionable/PPV&rdquo; rate; it is the share <em>marked as</em> abuse material, from a later, enriched pipeline stage, not comparable to the model&rsquo;s per-message PPV. It now appears as an independent datapoint, explicitly not a validation.</li>
+    <li><strong>The strengthening pass caught three more.</strong> When I added the deployed hash and a larger corpus, the adversarial passes found: my false-match confidence intervals assumed 124,750 independent trials when the pairs share images (fixed with an image-level bootstrap, which widened them enough that pHash&rsquo;s interval now straddles 1e&minus;4); my &ldquo;rotation breaks the hash&rdquo; figure was partly a black-corner fill artifact (re-measured with edge-extension, the effect shrank but survived); and my &ldquo;DCT hashes resist&rdquo; null was partly an artifact of a weak optimizer, since a stronger restart attack found a real signal on PDQ. Each correction made the write-up less tidy and more true.</li>
+  </ul>
+  <p>None of these would have been caught by a reader; several contradicted my own files. Publishing the corrected numbers is table stakes. Publishing the record of how the corrections happened is the actual demonstration of the habit a security or AI-safety role runs on: red-team your own preferred conclusion, and report the result that weakens it.</p>
+
+  <div class="aside">
+    <p class="tag">Note &middot; the EU record, as of 9 July 2026 (dated; not settled law)</p>
+    <p>Prompted by the &ldquo;chat control&rdquo; debate, and because it is being argued on shaky facts, the record from the European Parliament press release (ref&nbsp;20260706IPR46318): on Thursday (9 July 2026) Parliament, at <strong>second reading</strong> on the <strong>voluntary</strong> ePrivacy derogation for detecting abuse, <em>not</em> the mandatory client-side-scanning CSA Regulation, adopted amendments excluding end-to-end-encrypted communications from scope.</p>
+    <p>A motion to reject the amended text failed (276 in favour, 286 against, 30 abstentions), so the amended, encryption-excluding text stood and closed the second reading; the anti-scanning side lost the decisive threshold vote and the derogation advances. The mandatory permanent CSA Regulation remains in Council negotiation and is the live risk. This is a dated snapshot, not a prediction.</p>
+  </div>
+
+  <h2>Reproducibility</h2>
+  <p>Code, per-image data (CSV), dependency versions and fixed seeds are published: <code>base_rate_model.py</code>, <code>perceptual_hash_boundary_v2.py</code> (PDQ via the open-source <code>pdqhash</code>; corpus BSDS500), <code>attack_budget_sweep_v2.py</code>, <code>strong_attack_check.py</code> (with CSVs). Every legislative and technical claim is footnoted to a primary source.</p>
+
+  <h2>Sources</h2>
+  <ul class="refs">
+    <li>Jain, Cre&#539;u, de Montjoye, <em>Adversarial Detection Avoidance Attacks</em>, USENIX Security 2022.</li>
+    <li>Madden, Bhavsar, Dorje, Li, arXiv:2406.00918 (NeurIPS 2024 AdvML workshop); quotes and venue verified.</li>
+    <li>PDQ: Meta ThreatExchange (github.com/facebook/ThreatExchange/tree/main/pdq): 256-bit hash, documented match threshold &le;31; the <code>pdqhash</code> Python package.</li>
+    <li>Struppek et al., <em>Learning to Break Deep Perceptual Hashing</em>, FAccT 2022, arXiv:2111.06628.</li>
+    <li>Ireland 2020 figures: Irish Council for Civil Liberties, citing An Garda S&iacute;och&aacute;na: 4,192 / 852 / 409 / 265 / 471; prosecution figures not retained.</li>
+    <li>PhotoDNA ~1-in-50-billion: attributed to Hany Farid (co-creator), 2019; derivation unpublished, never independently verified.</li>
+    <li>European Parliament press release ref 20260706IPR46318 (the 9 July second-reading vote).</li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;&middot;&nbsp; <a href="../measurement-first/">measurement-first</a> &nbsp;&middot;&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;&middot;&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>
