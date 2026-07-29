@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>I scored my own bug-hunting protocol · Matteo Panzeri</title>
+<meta name="description" content="A self-audit of the verification gate I built for vulnerability hunting. Scored against ten cases whose outcomes I already knew, it would have killed three of the five real findings, two of them my own published CVEs. The two failure modes, the correction, and the discipline problem underneath it." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  .note{font-size:14.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  td.num{font-family:var(--mono)}
+  .caption{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 24px}
+
+  .aside{border:1px solid var(--line); border-left:2px solid var(--signal-soft); background:var(--panel); border-radius:8px; padding:22px 24px; margin:28px 0}
+  .aside .tag{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px}
+  .aside p{font-size:15.5px; color:#cbc8c0; margin:0 0 12px} .aside p:last-child{margin:0}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook &middot; 2026-07-29</p>
+  <h1>I scored my own bug-hunting protocol. It would have killed three of the five real findings.</h1>
+  <p class="dek">Two of the three were mine. A self-audit of a verification gate, the two specific ways it failed, and the discipline problem sitting underneath it.</p>
+  <p class="byline">Matteo Panzeri &middot; AI-for-security research</p>
+
+  <p class="note">Written with AI assistance. The adversarial reviews referenced throughout were independent adversarial LLM passes, not third-party review. Disclosure: one of the backtest cases is Pillar Security&rsquo;s work; their researcher Ariel Fogel contacted me after publishing it, credits me in one of their repositories for an unrelated finding of mine, and has invited me to be interviewed. I used their case because it is the clearest public example of the failure mode, and because their own account of what happened in triage is the external evidence for it.</p>
+
+  <p>Two hunts in a row returned nothing, and a third produced two candidates that also died. A hardware wallet, a coding agent, an agent SDK. Each write-up concluded, with some confidence, that the surface was well defended.</p>
+
+  <p>That is a suspicious kind of result, so I tested the instrument instead of the target. I took the verification protocol I had built, assembled ten cases whose outcomes I already knew, and had each judged against the rules.</p>
+
+  <p>It scored <strong>40 percent recall and 50 percent precision</strong>. Of the five findings that were genuinely accepted in the real world, the protocol would have killed three. Two of those three were mine.</p>
+
+  <h2>What the protocol was</h2>
+  <p>After the second empty hunt I wrote a gate: a qualification checklist, ten kill criteria, a mandatory pre-check before any deep analysis, and a dynamic phase with six controls against confirmation bias. Default verdict on any candidate: <strong>not a bug</strong>. Every candidate had to survive independent reviewers whose job was to refute it.</p>
+  <p>The goal was to stop me believing my own hypotheses. It is the kind of thing people publish as a methodology post, which is roughly what I was planning to do with it.</p>
+
+  <h2>The backtest, and what is wrong with it</h2>
+  <p>Ten cases: five accepted, credited or paid; five rejected. Each was judged by a separate analyst who was given the rules and the case and told to apply them mechanically.</p>
+
+  <table>
+    <thead>
+      <tr><th></th><th>real finding</th><th>not a finding</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>protocol says pursue</td><td class="num">2</td><td class="num">2</td></tr>
+      <tr><td>protocol says kill</td><td class="num"><strong>3</strong></td><td class="num">3</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">The three false negatives were Pillar Security&rsquo;s Codex <code>git show</code> finding, and two of my own published CVEs.</p>
+
+  <p><strong>The design flaw, stated before the result is used for anything.</strong> The analysts were blind to each other, not to the outcome. Each was told what really happened and instructed not to let it bias the grading. That is weaker than a blind trial and it biases in a knowable direction: an analyst who knows a case was accepted has a reason to find the protocol at fault, which inflates the measured false-negative rate. I do not know by how much.</p>
+
+  <p><strong>n is ten.</strong> With five positives, the difference between 40 and 60 percent recall is one case. There are no confidence intervals here and I am not going to manufacture any.</p>
+
+  <p><strong>Nine of the ten cases are my own work.</strong> Only Pillar&rsquo;s is external. This is a self-audit, not a study.</p>
+
+  <p><strong>The composition is worse than the headline.</strong> Both true positives passed only under a charitable reading of a rule that had a defensible kill available. The three true negatives are worth about one clean kill between them: one analyst called their own case close to tautological, another rated their kill 60 to 70 percent reliable, a third was contradicted by what the record actually showed.</p>
+
+  <p>So the honest summary is not a rate. It is: <strong>on a small, outcome-aware, self-referential sample, the gate killed more real findings than it caught.</strong> That is enough to make me stop using it. It is not enough to make it a study.</p>
+
+  <h2>The two failure modes worth naming</h2>
+  <p>I am deliberately not claiming a principle here. &ldquo;Controls in one direction move the decision threshold&rdquo; is the precision and recall tradeoff with a costume on, and I do not need ten cases to rediscover it. What I think is worth writing down is narrower: two specific ways the controls failed, one of which has external corroboration.</p>
+
+  <h2>Refutation by retry is unfalsifiable in reverse</h2>
+  <p>One control, D6, said: <em>re-run adversarially with the goal of making the finding fail.</em></p>
+  <p>Against a deterministic bug that is a good test. Against a probabilistic one it is not a test at all. If a finding depends on a model complying with an injected instruction, and the model refuses some fraction of the time, then &ldquo;try to make it fail&rdquo; always succeeds. You rerun until a refusal and record a refutation. D6 can refute any model-mediated finding, including every true one.</p>
+  <p>The external evidence is not mine. When Pillar reported the <code>git show</code> bug, the triage team could not reproduce it, because the model refused the injected instruction on their attempt. Pillar&rsquo;s account makes the point directly: model refusal is probabilistic, and running the prompt enough times gets compliance. The finding was assessed at CVSS 8.6 and fixed in v0.95.0.</p>
+  <p>So a human triage process recovered from the probabilistic case, and the automated one I built was constructed so that it could not.</p>
+  <p>The fix is not to delete the control. It is that <strong>a probabilistic effect has a rate, and a rate is a measurement, not a refutation.</strong> One failed run means nothing.</p>
+
+  <h2>Vendor text describing a mechanism is not vendor acceptance of a consequence</h2>
+  <p>The second rule, K3, killed any candidate where the vendor had documented the behaviour as intentional.</p>
+  <p>That conflates two different statements. &ldquo;This mechanism is deliberate&rdquo; is a design decision and a fair kill. &ldquo;These commands cannot do harm regardless of their arguments&rdquo; is a <strong>safety claim</strong>, and a safety claim is not a stop sign, it is the target. The vendor removed a guard because they believed it. If the belief is false, the documentation is the aggravating factor, not the reason to walk away.</p>
+  <p>Pillar&rsquo;s finding is exactly that shape. The tool ships an allowlist of commands that skip both the sandbox and the approval prompt, on the stated theory that they cannot do harm whatever the arguments. <code>git show</code> is on it because it displays a commit. But <code>git show --output</code> writes to an arbitrary file and <code>--format</code> controls the content, so it can plant a malicious external diff tool that fires later when the developer runs <code>git diff</code>. Their line for it is better than mine: the allowlist trusted a name, and the risk was always in the invocation.</p>
+  <p>My rule would have read the vendor&rsquo;s documentation of that allowlist and stopped.</p>
+
+  <h2>The scoreboard for the part I was proudest of</h2>
+  <p>The six anti-bias controls were the newest and most carefully designed part of the protocol. Across the backtest they caught <strong>0 of the 4 rejections</strong> and killed <strong>1 of the 1 true positive</strong> they touched. Net contribution: negative.</p>
+
+  <h2>Why none of this announces itself</h2>
+  <p>A false positive is visible. You send a weak report, someone tells you no, you lose a little credibility and you learn something.</p>
+  <p>A false negative is invisible. The candidate dies in your own notes.</p>
+  <p>Which means an over-aggressive gate does not look like a broken gate. <strong>It produces zeros that look like honest results.</strong> My hunts returned nothing and each memo concluded the surface was saturated. Without an external check I had no way to tell &ldquo;there was nothing there&rdquo; from &ldquo;I killed everything&rdquo;.</p>
+
+  <h2>The thing the gate could not measure at all</h2>
+  <p>There is a deeper problem that the correction does not touch, and it took a separate audit of my own submission history to see it.</p>
+  <p>Every instrument in the protocol measures whether a bug is <strong>true</strong>. Programs pay for findings that are true <strong>and novel and above the vendor&rsquo;s bar</strong>. Novelty I could only approximate through public visibility, and impact tier I was not measuring at all.</p>
+  <p>Worse, the gate is mildly anti-correlated with getting paid. One of my rejected cases scored a perfect pass on every qualification check: attacker-controlled input at the entry point, readable open-source code, exploitable in stock defaults, reproducible in ten minutes. Those are exactly the properties that make a bug easy for every other researcher to find first. It was closed as a duplicate.</p>
+  <p>A gate that selects for verifiability selects for findability. I had not noticed that they are the same axis.</p>
+
+  <h2>Testing whether the correction was real</h2>
+  <p>Loosening rules always produces more findings, so &ldquo;I fixed my methodology and now it works&rdquo; is worth nothing on its own.</p>
+  <p>I re-ran the corrected rules over all eight candidates my hunts had killed, with an explicit instruction that confirming a correct kill was a valid and useful outcome.</p>
+  <p><strong>Five stayed dead. Three reopened.</strong></p>
+  <p>The five that stayed dead got stronger, because the corrected rules forced someone to read layers the original kills had only assumed: in one case a rendering layer nobody had opened, in another an on-chain program the kill had asserted would reject the input. Both confirmed the kill.</p>
+  <p>All three reopenings traced to K3, the mechanism-versus-consequence rule.</p>
+  <p><strong>How much should you believe that?</strong> Less than I would like. Three events is not a distribution, and a rule-specific change producing rule-specific reopenings is close to tautological: I changed K3, so of course the cases K3 had killed are the ones that moved. What it rules out is the crudest failure, that I relaxed everything and took the yield as vindication. It does not show the new rules are right.</p>
+  <p>And the rule I was proudest of did nothing. The symmetric-burden rule, the one requiring a kill to carry the same evidentiary weight as a finding, changed the confidence attached to eight kills and the verdict of none of them. It is a good rule. It is not why anything reopened.</p>
+
+  <h2>The part where I stopped following my own method</h2>
+  <p>I took the strongest reopened candidate and verified it.</p>
+  <p>To be precise, because the distinction is the whole point of what follows: I <strong>executed</strong> the layer where the defect lives. Four tests, all passing, confirming the behaviour I had claimed. The rest of the chain, from that behaviour to the impact, I <strong>traced by reading</strong> the source and citing lines. I did not run the end-to-end attack.</p>
+  <p>The tests also disproved one of my own assumptions, which cut both ways. I had claimed the attack required a specific precondition, and it did not, which made the finding easier to trigger. It also removed the argument I had been using to distinguish my case from a related public report, which made the duplicate risk worse. I recorded both.</p>
+  <p>Then my red team reviewed the report and said, in substance: do not send this until you have run it end to end, because the program&rsquo;s own scope grants credit for demonstrating the impact, and you are demonstrating a mechanism rather than an impact. It named the outcome precisely.</p>
+  <p>I sent it anyway. There was an open vendor pull request touching the same code and I did not want to be duplicated.</p>
+  <p>It was closed without award, on the grounds the review had predicted almost word for word.</p>
+  <p>I am not going to describe the finding or quote the correspondence, because submissions to that program are confidential under its terms and that applies to closed submissions too. The relevant part is not the bug. It is that the reasoning for rejecting it existed, in writing, in my own files, before I clicked send.</p>
+
+  <h2>The third time</h2>
+  <p>Afterwards I went looking in my own records, and this was not new.</p>
+  <ul>
+    <li>A submission where the ledger entry written before sending predicts it will be closed as out of scope. It was closed as out of scope.</li>
+    <li>A hardware wallet finding where the pre-send memo says the vendor will probably decline it and warns me not to oversell the impact. The vendor declined it, giving essentially the reason the memo anticipated.</li>
+    <li>This one, where an automated review named the rejection in advance.</li>
+  </ul>
+  <p>Three times, three different mechanisms: an ad hoc note, a structured field in a ledger, and an automated review panel. The prediction machinery improved at every step. The behaviour did not change once.</p>
+  <p>That is the finding I did not want. I had been treating this as an information problem and building better instruments for it. <strong>The binding constraint was never information. It was acting on information I already had.</strong> A better gate does not fix that, and building one is a comfortable way of not addressing it.</p>
+
+  <h2>What I would tell someone building the same thing</h2>
+  <ul>
+    <li>Score your gate before you trust it. A methodology you have not measured against known outcomes is a preference.</li>
+    <li>Count your controls in both directions. If every one makes it harder to believe and none makes it harder to dismiss, you have built a machine whose output is zero.</li>
+    <li>Any control of the form &ldquo;retry until it fails&rdquo; is unfalsifiable in reverse against anything probabilistic. Measure the rate.</li>
+    <li>A vendor&rsquo;s safety claim is a target. A vendor&rsquo;s design decision is a stop sign. They read almost identically and mean opposite things.</li>
+    <li>Check whether your gate is selecting for the same property that makes a bug easy for others to find first.</li>
+    <li>Give the number that flatters you the same scepticism as the one that does not. I failed this in the first draft of this article and it was pointed out to me.</li>
+    <li>Watch the send gate, not only the kill gate. Mine was the one that was actually broken.</li>
+  </ul>
+
+  <h2>Limits</h2>
+  <ul class="limits">
+    <li>One researcher&rsquo;s protocol, scored on ten cases, nine of them his own work, graded by analysts who knew the outcomes.</li>
+    <li>The two failure modes are general in shape and one has external corroboration, but nothing here shows how common they are elsewhere.</li>
+    <li>The re-adjudication is three events. The corrected protocol has produced exactly one candidate so far and it was rejected.</li>
+  </ul>
+  <p>I have written down the next test before running it: the same method, unchanged, against a target selected mechanically to match the conditions where it has previously worked, with local execution available from the start, and with the conditions under which I would conclude the method does not work fixed in advance. I will publish that outcome either way.</p>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;&middot;&nbsp; <a href="../population-scale-scanning/">population-scale scanning</a> &nbsp;&middot;&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;&middot;&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>

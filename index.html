@@ -278,7 +278,7 @@
       </a>
       <a class="row" href="https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w" target="_blank" rel="noopener">
         <span class="sev">High</span>
-        <span><span class="name">ouroboros</span><span class="desc">Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
+        <span><span class="name">ouroboros</span><span class="desc">Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist. An incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
         <span class="id">GHSA-jv2h <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h" target="_blank" rel="noopener">
@@ -352,9 +352,14 @@
 
   <section id="writing">
     <h2 class="sec-h">Writing</h2>
+    <a class="row reveal" href="./writing/scoring-my-own-gate/" style="grid-template-columns:118px 1fr auto">
+      <span class="sev">2026 &middot; 07</span>
+      <span><span class="name">I scored my own bug-hunting protocol. It would have killed three of the five real findings.</span><span class="desc">A self-audit, not a study. I graded the verification gate I had built against ten cases whose outcomes I already knew: <b>40% recall, 50% precision</b>, and two of the three false negatives were my own published CVEs. The design flaws in that number stated up front, the two specific failure modes (refutation-by-retry against a probabilistic effect, and mechanism mistaken for accepted consequence), the re-adjudication that reopened three of eight kills, and the part I did not want to find: a send-gate failure that my own review had predicted in writing before I clicked.</span></span>
+      <span class="id">read <span class="arrow">&rarr;</span></span>
+    </a>
     <a class="row reveal" href="./writing/ai-act-self-check-audit/" style="grid-template-columns:118px 1fr auto">
       <span class="sev">2026 &middot; 07</span>
-      <span><span class="name">A compliance tool that has to be wrong out loud: freezing the test cases before the rules, and auditing my own claims</span><span class="desc">A free EU AI Act self-check for SMEs, built where being confidently wrong has legal consequences. Fourteen legal scenarios hash-frozen four hours before the first rule existed; a &ldquo;your answers never leave the device&rdquo; promise enforced by a CI test that asserts zero non-self requests; three-valued verdicts that refuse to guess (25,515 evaluations found no &ldquo;compliant&rdquo; resting on missing data). Plus the record of what adversarial passes killed in my own public claims &mdash; including a false statement in my own README &mdash; and the portability bug the gate caught that I could not.</span></span>
+      <span><span class="name">A compliance tool that has to be wrong out loud: freezing the test cases before the rules, and auditing my own claims</span><span class="desc">A free EU AI Act self-check for SMEs, built where being confidently wrong has legal consequences. Fourteen legal scenarios hash-frozen four hours before the first rule existed; a &ldquo;your answers never leave the device&rdquo; promise enforced by a CI test that asserts zero non-self requests; three-valued verdicts that refuse to guess (25,515 evaluations found no &ldquo;compliant&rdquo; resting on missing data). Plus the record of what adversarial passes killed in my own public claims, including a false statement in my own README, and the portability bug the gate caught that I could not.</span></span>
       <span class="id">read <span class="arrow">&rarr;</span></span>
     </a>
     <a class="row reveal" href="./writing/population-scale-scanning/" style="grid-template-columns:118px 1fr auto">
