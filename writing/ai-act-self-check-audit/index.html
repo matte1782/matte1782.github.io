@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A compliance tool that has to be wrong out loud &middot; Matteo Panzeri</title>
+<meta name="description" content="Building a free EU AI Act self-check for SMEs where being confidently wrong has legal consequences: test cases frozen before any rule, a privacy claim enforced by a CI test, three-valued verdicts that refuse to guess, and the record of the public claims adversarial passes killed, including a false statement in my own README." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  .note{font-size:14.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  td .num{font-family:var(--mono)}
+  .caption{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 24px}
+
+  .aside{border:1px solid var(--line); border-left:2px solid var(--signal-soft); background:var(--panel); border-radius:8px; padding:22px 24px; margin:28px 0}
+  .aside .tag{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px}
+  .aside p{font-size:15.5px; color:#cbc8c0; margin:0 0 12px} .aside p:last-child{margin:0}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Case study &middot; 2026-07-29</p>
+  <h1>A compliance tool that has to be wrong out loud</h1>
+  <p class="dek">I built a free AI Act self-check for Italian SMEs, where being confidently wrong has legal consequences for someone else. The tool is the boring part. I froze the test cases before writing any rule, made the privacy promise a test that fails CI, then pointed adversarial passes at my own public claims. They killed four of them, including a false statement in my own README.</p>
+  <p class="byline">Matteo Panzeri &middot; AI-for-security research</p>
+
+  <p class="note">Written with AI assistance; the tool itself was built with it, and its own start screen discloses that it is an AI-based system. The audits referenced here were independent adversarial LLM passes, <strong>not</strong> third-party human review: no lawyer outside the project has validated the rules, and that remains the largest gap. Every legal date is quoted from the Official Journal text; the code, rules, frozen scenarios and audit guide are public.</p>
+
+  <h2>The problem with a compliance triage</h2>
+  <p>The AI Act (Regulation (EU) 2024/1689) reaches small businesses that have no compliance function. Its transparency duties begin applying on 2 August 2026, and the Digital Omnibus (Regulation (EU) 2026/1744, published in the Official Journal on 24 July 2026, in force from the 27th) moved several dates. A tool that answers &ldquo;what applies to me, and by when&rdquo; is useful. A tool that answers it <em>confidently and wrongly</em> is worse than nothing, because the user cannot tell the two apart.</p>
+  <p>The design constraint follows: the system must be <strong>able to be wrong out loud</strong>. Not accurate; no v1 is. It has to be structurally unable to hide a gap. Three mechanisms carry that, and each is a testable artifact rather than a promise.</p>
+
+  <h2>1 &middot; Freeze the test cases before writing the rules</h2>
+  <p>Fourteen legal scenarios (facts in, expected verdict out, each with its own citation) were written and hash-frozen <em>before</em> any rule existed. The git record shows the scenarios committed at 16:54 and the first rules at 20:56 the same day, four hours later, and exactly one commit in the repository&rsquo;s history touches that directory: the freeze itself. A checksum file plus an independent copy of the same fourteen hashes in the decision log means a silent edit would have to defeat two records.</p>
+  <p><strong>What does the freeze actually buy?</strong> It provably stops the <em>scenarios</em> being edited to fit the rules, which is the failure mode of every self-graded benchmark. It does <strong>not</strong> stop the <em>rules</em> being written to fit the scenarios: I could see them while writing. The project&rsquo;s decision log states this in as many words and lists the counter-measures (author each rule from the statute text first, write a justification for why the opposite verdict would violate the cited provision, anchor every date to a source table instead of retyping it). An auditor put it more sharply than I had: commit timestamps are author-controlled, and the server-side record only begins at the first push. The ordering is evidence, not proof.</p>
+
+  <h2>2 &middot; Make the privacy claim a test that can fail</h2>
+  <p>The tool runs entirely in the browser, with the Python engine compiled to WebAssembly, so answers about a client&rsquo;s possibly-unlawful practices never reach a server. That claim is worth exactly as much as its enforcement, so it has two: a Content Security Policy forbidding connections to external origins, and an end-to-end test that drives the whole questionnaire and asserts <strong>zero non-self requests and zero requests after load</strong>, running in CI on every push. Add an analytics snippet and the gate goes red.</p>
+  <p>An auditor found the hole in that arrangement: the deploy workflow was independent of the test workflow, so a push whose privacy test <em>failed</em> would still have shipped. Deployment is now gated on the test workflow. The claim was true; I had never checked whether a failing test could block a deploy.</p>
+  <p>The same pass refused two overstatements I had shipped. A CSP does not stop a top-level navigation, only the data-carrying primitives (fetch, XHR, WebSocket, beacon); and on GitHub Pages the policy can only be delivered in a <code>&lt;meta&gt;</code> tag, so header-only directives are silently ignored. Both are now written on the transparency page instead of left for a reader to discover.</p>
+
+  <h2>3 &middot; A verdict that refuses to guess</h2>
+  <p>Evaluation is three-valued: true, false, unknown. Unknown propagates, and the invariant is that <strong>no &ldquo;compliant&rdquo; verdict may rest on an unknown fact</strong>, including the case that sinks naive implementations, where <code>any(TRUE, UNKNOWN)</code> evaluates to true in the three-valued logic itself, masking an unknown that could still matter. Those are demoted to &ldquo;undetermined.&rdquo; A perturbation harness omits and flips every fact of every frozen scenario in turn, 166 perturbations in all, and not one produced a &ldquo;compliant&rdquo; resting on missing data.</p>
+  <p>Users can answer <em>&ldquo;I don&rsquo;t know&rdquo;</em> to any question; it is a first-class answer that leads to &ldquo;needs human review.&rdquo; That trade is deliberate: an undetermined verdict costs the user time, and a false compliant is the only output that can cause loss.</p>
+
+  <h2>What the adversarial passes caught in my own claims</h2>
+  <p>Publishing corrected work is table stakes; publishing the record of the corrections is the demonstration. Before the launch post went out, an adversarial pass read it against the code. It confirmed 21 findings, four blocking.</p>
+  <ul>
+    <li><strong>My headline promised an accuracy the design cannot deliver.</strong> I had written &ldquo;never a false <em>compliant</em>.&rdquo; Fail-closed logic guarantees only that <em>missing</em> facts cannot yield a compliant verdict; it cannot exclude a wrong user answer, a mis-modelled rule, or an obligation the v1 slice does not cover. The app&rsquo;s own disclaimer says &ldquo;verdicts may be incomplete or wrong.&rdquo; I had advertised the opposite of my own product.</li>
+    <li><strong>My README described a deployment I did not have.</strong> &ldquo;nessun CDN, nessun server, nessun trattamento di dati&rdquo; (no CDN, no server, no data processing): false as deployed. GitHub Pages, fronted by Fastly, logs visitor IPs like any host. The answers never leave the browser; the <em>site</em> is still hosted. The audience most likely to notice was exactly the audience I was addressing.</li>
+    <li><strong>My disclaimer arrived after the call to action.</strong> The link sat at character 363 of the post, &ldquo;this is not legal advice&rdquo; at 1,539. For reliance purposes that is the wrong order: a reader who clicked at 363 reached the tool before reading the sentence at 1,539.</li>
+    <li><strong>My comparison made three claims about other people&rsquo;s tools, two of them unsupported.</strong> It implied the Commission&rsquo;s official checker and the Future of Life Institute&rsquo;s lacked Italian, currency, or data guarantees. Both have Italian; I had never verified how either handles data. Research I had commissioned myself already recorded this, and I wrote the paragraph anyway.</li>
+  </ul>
+  <p>Then five auditor personas (a lawyer, a security auditor, a DPO, an institutional re-hoster, a skeptical engineer) were pointed at the <em>live</em> tool with no context and told to verify the public claims or fail trying. All five concluded they would trust it. All five found defects:</p>
+  <ul>
+    <li>The results page&rsquo;s <strong>&ldquo;source repository&rdquo; link was a placeholder</strong> pointing at github.com. The one click a skeptic makes to check my claims landed on GitHub&rsquo;s homepage.</li>
+    <li>The <strong>explanation trace printed the truth value of the <em>test</em> under the label of the <em>fact</em></strong>. A user who answered &ldquo;no, users are not informed&rdquo; read <code>interaction_disclosed &rarr; TRUE</code>. The trace was technically correct; to the user it said the opposite of the answer they had just given.</li>
+    <li><strong>Citations rendered as <code>Art. 50(1)(1)</code> and <code>Art. 5(1)(c)(1)</code></strong>: the paragraph concatenated onto an article that already contained it. There is no Art. 5(1)(c)(1), and a lawyer cannot cite that.</li>
+    <li>The published <strong>verification recipe proved nothing</strong>: comparing a zip against a checksum file shipped beside it does not detect tampering. The check that means something is rebuilding the archive from source and comparing it with what the live site serves.</li>
+  </ul>
+  <p>Verification took the five of them between 32 and 85 minutes, most of it spent working out where to look. That friction became a short <a href="https://github.com/matte1782/ai-act-sme-checker/blob/master/AUDIT.md">audit guide</a> written from their actual obstacles, whose longest section is titled <em>What this does not prove</em>.</p>
+
+  <h2>The bug the harness caught that I could not</h2>
+  <p>One more, because it is the cleanest argument for the method. The engine ships as a deterministic archive whose sha256 anyone can reproduce and compare with the live site. It reproduced perfectly on my machine, and CI rejected it on the first push. <code>ZipInfo.create_system</code> defaults to 0 on Windows and 3 on Unix, so identical inputs produced different bytes on different platforms: the &ldquo;anyone can verify this&rdquo; property would have been false for every auditor not using Windows. A gate built to catch staleness caught a portability defect I did not know existed. It surfaced only because the gate runs on a machine that is not mine.</p>
+
+  <h2>What this does and does not show</h2>
+  <p>It is worth being exact about which half of this transfers. Not the rules: they cover a triage slice of one regulation and carry every limit below. What transfers is the arrangement around them. Freeze the test cases before the rules exist. Make the privacy claim a test that fails CI. Let the verdict refuse to guess rather than round an unknown up to compliant. Point the adversarial passes at your own public claims, not only at your code. None of that made the tool correct, and nothing here should be read as saying it did. What it did was surface four blocking findings in my own launch post, the defects five auditor personas found on a live tool they were given no context for, and a portability bug I would not have found by being more careful.</p>
+
+  <h2>Limits, stated as the project&rsquo;s spine</h2>
+  <ul class="limits">
+    <li><strong>No external human legal review.</strong> The rules encode articles I read myself. Adversarial LLM passes are not a substitute for a lawyer, and I do not present them as one. This is the gap I am actively trying to close.</li>
+    <li><strong>The freeze is evidence, not proof</strong> (above), and the anti-bias protocol it belongs to is self-administered.</li>
+    <li><strong>Coverage is a triage slice.</strong> Chapter III high-risk obligations are not substantively assessed: the tool gives the deadline and asks whether they are met. Italy&rsquo;s national AI law (L. 132/2025) is out of scope, and its implementing decrees were still drafts at the time of writing.</li>
+    <li><strong>One question is collected but unused</strong>: provider-versus-deployer does not yet branch any rule, so role-specific duties are not distinguished.</li>
+    <li><strong>Two weeks old, no user testing.</strong> A pre-registered protocol exists with frozen success thresholds; no participant has run it yet, so nothing is claimed about usability.</li>
+  </ul>
+
+  <h2>Reproducibility</h2>
+  <p>Tool: <a href="https://matte1782.github.io/ai-act-sme-checker/">matte1782.github.io/ai-act-sme-checker</a>. Code, rules, frozen scenarios, decision log and audit guide: <a href="https://github.com/matte1782/ai-act-sme-checker">github.com/matte1782/ai-act-sme-checker</a> (EUPL-1.2, re-hostable verbatim). <code>bash scripts/check.sh</code> runs the whole gate: 440 tests, the fourteen frozen scenarios, and the bundle-integrity check. Every applicability date is quoted from the OJ text of Regulation (EU) 2026/1744, a copy of which is in the repository with its hash recorded.</p>
+
+  <h2>Sources</h2>
+  <ul class="refs">
+    <li>Regulation (EU) 2024/1689 (AI Act), OJ L 2024/1689, 12.7.2024.</li>
+    <li>Regulation (EU) 2026/1744 (Digital Omnibus on AI), OJ L, 24.7.2026; in force 27.7.2026 (Art. 4: third day after publication).</li>
+    <li>Amended Art. 113, third paragraph, points (a), (c), (d) and new Art. 111(4): the applicability dates the tool encodes.</li>
+    <li>Commission Guidelines on the definition of an AI system, C(2025) 5053: the basis on which the tool classifies itself as an AI system.</li>
+    <li>European Commission, AI Act Service Desk and Compliance Checker (beta), live since 8 October 2025, Italian among its languages.</li>
+    <li>Future of Life Institute, EU AI Act Compliance Checker (artificialintelligenceact.eu), not affiliated with the EU.</li>
+  </ul>
+</article>
+</main>
+
+<footer class="wrap">
+  <a href="../../">&larr; matteo panzeri</a> &nbsp;&middot;&nbsp; <a href="../population-scale-scanning/">population-scale scanning</a> &nbsp;&middot;&nbsp; <a href="https://github.com/matte1782">github</a> &nbsp;&middot;&nbsp; <a href="mailto:matteo1782@gmail.com">matteo1782@gmail.com</a>
+</footer>
+</body>
+</html>
