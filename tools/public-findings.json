@@ -89,7 +89,7 @@
       "severity_label": "High",
       "score": "7.5",
       "cvss_published": false,
-      "desc": "Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "desc": "Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist. An incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.",
       "id_label": "GHSA-jv2h",
       "url": "https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w",
       "proof": {
