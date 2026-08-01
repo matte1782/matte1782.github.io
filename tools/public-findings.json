@@ -44,23 +44,23 @@
     },
     {
       "name": "Langroid",
-      "severity_label": "High",
-      "score": "8.1",
-      "cvss_published": false,
-      "desc": "Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; reporter-credited, and the 0.65.5 patch extended validation to Cypher and AQL. Severity self-assessed; the advisory carries no CVSS and no CVE.",
-      "id_label": "GHSA-2pq5",
+      "severity_label": "Critical",
+      "score": "9.2",
+      "cvss_published": true,
+      "desc": "Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; sole reporter, and the 0.65.5 patch extended validation to Cypher and AQL. CVE-2026-55615, CVSS v4 9.2 Critical as rated by the advisory.",
+      "id_label": "CVE-2026-55615",
       "url": "https://github.com/langroid/langroid/security/advisories/GHSA-2pq5-3q89-j7cc",
       "proof": {
         "published": true,
         "type": "repo_advisory",
         "repo": "langroid/langroid",
         "ghsa": "GHSA-2pq5-3q89-j7cc",
-        "cve": null,
-        "in_global_db": false,
-        "cve_in_global_db": false,
+        "cve": "CVE-2026-55615",
+        "in_global_db": true,
+        "cve_in_global_db": true,
         "repo_state": "published",
-        "verified_at": "2026-06-15",
-        "note": "Repo advisory live and published (state=published, verified via gh on 2026-06-15; anonymous HTTP 200 on the advisory URL also confirmed). Severity High per the advisory's qualitative rating; the advisory carries NO CVSS and lists NO CWEs and NO CVE (cve=null), so cvss_published:false (no numeric chip is rendered; the 8.1 is the author's self-assessment, retained for ordering only) and it is cited as a GHSA, not a CVE. NOT in the GitHub global advisory DB (advisories/GHSA-2pq5-3q89-j7cc returns 404), so proof type is repo_advisory and the citation is the repo advisory URL. matte1782 is the credited reporter. Incomplete-fix sibling of CVE-2026-25879 (the SQLChatAgent query-validation fix) found by sibling-diff; maintainer Prasad Chalasani (@pchalasani) shipped 0.65.5 and, on the reporter's follow-up, extended validation to cover Cypher and AQL (ArangoDB), not just the reported Neo4j path."
+        "verified_at": "2026-08-01",
+        "note": "Repo advisory published; re-verified 2026-08-01. The advisory now rates severity=critical with CVSS v4 9.2 (CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N) and carries CVE-2026-55615, so cvss_published is now true and the row cites the CVE. This SUPERSEDES the earlier note, written 2026-06-15, which recorded no CVSS, no CVE and a 404 on the global DB: all three have since changed and advisories/GHSA-2pq5-3q89-j7cc now resolves. credits length is 1: matte1782 as reporter, SOLE, no co-finders (maintainer @pchalasani appears in the resolution text only). The GitHub_M CVE record carries an EMPTY credits block, which is standard for GitHub_M, so the row deliberately links the GHSA and not cve.org: the GHSA is where the credit is publicly visible. Note the reporter filed this as High and the advisory rated it UP to Critical."
       }
     },
     {
@@ -89,7 +89,7 @@
       "severity_label": "High",
       "score": "7.5",
       "cvss_published": false,
-      "desc": "Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.",
+      "desc": "Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist. An incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.",
       "id_label": "GHSA-jv2h",
       "url": "https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w",
       "proof": {
@@ -247,23 +247,47 @@
     },
     {
       "name": "Google MCP Toolbox",
-      "severity_label": "Mod",
-      "score": "4.0",
-      "cvss_published": false,
-      "desc": "Credited reporter on a MERGED FIX (not an advisory; no GHSA/CVE): allowedDatasets scope-bypass in the BigQuery forecast / analyze-contribution tools of Google's MCP Toolbox. The Google maintainer merged the fix and credited the report in the PR body. Severity self-assessed.",
-      "id_label": "PR #3324",
-      "url": "https://github.com/googleapis/mcp-toolbox/pull/3324",
+      "severity_label": "High",
+      "score": "8.6",
+      "cvss_published": true,
+      "desc": "SQL injection and security-boundary bypass allowing the allowedDatasets scope to be escaped (CWE-89, CWE-863). CVE-2026-15829, CVSS v4 8.6 High, assigned by Google as CNA, which credits 'Matteo Panzeri (Universita di Pavia), GitHub @matte1782' as finder. The CVE record scopes itself to the prebuilt bigquery-forecast tool; the merged fix, googleapis/mcp-toolbox PR #3324, covers both the forecast and analyze-contribution tools.",
+      "id_label": "CVE-2026-15829",
+      "url": "https://www.cve.org/CVERecord?id=CVE-2026-15829",
       "proof": {
         "published": true,
         "type": "pr_merged",
         "repo": "googleapis/mcp-toolbox",
         "pr": 3324,
         "credit": "matte1782",
-        "cve": null,
+        "cve": "CVE-2026-15829",
         "in_global_db": false,
         "merged": true,
-        "verified_at": "2026-06-16",
-        "note": "Public PR googleapis/mcp-toolbox#3324, merged 2026-06-04 into main by @duwenxin99; the merged PR body credits 'Reported by: Matteo Panzeri @matte1782'. No GHSA/CVE (the repo has no published security-advisories). Scoped to the public allowedDatasets-bypass fix ONLY; the broader email-coordinated report is deliberately NOT represented here. The --verify gate live-checks repos/googleapis/mcp-toolbox/pulls/3324 .merged == true AND that 'matte1782' is present in the PR body, fail-closed."
+        "verified_at": "2026-08-01",
+        "note": "Public PR googleapis/mcp-toolbox#3324, merged 2026-06-04 by @duwenxin99; body credits 'Reported by: Matteo Panzeri @matte1782'. SUPERSEDES the earlier note claiming no GHSA/CVE: on 2026-07-21 Google assigned CVE-2026-15829 as CNA, PUBLISHED, with metrics containing ONLY cvssV4_0 8.6 HIGH (CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N) and no v3.1 score anywhere, hence 'CVSS v4 8.6'. credits has exactly one entry, type 'finder', naming Matteo Panzeri. There is NO GHSA: googleapis/mcp-toolbox has no published security-advisories, and the CVE is not in the GitHub global DB, so the --verify proof REMAINS pr_merged (live-checks .merged and that 'matte1782' is in the PR body), which is the only GitHub-checkable artifact. Distinct from CVE-2026-14538 (bigquery-execute-sql, PR #3452), which is credited to another researcher.",
+        "cve_assigner": "Google",
+        "cve_in_global_db": false
+      }
+    },
+    {
+      "name": "Apache Airflow",
+      "severity_label": "Low",
+      "score": "6.5",
+      "cvss_published": false,
+      "desc": "Per-Dag read authorization bypass (CWE-863): a user authorized to read one Dag could disclose the source of other Dags co-located in the same source file, because GET /api/v2/dagSources/{dag_id} and the equivalent UI view returned the whole file without redacting Dags the caller could not read. CVE-2026-49296, assigned by the Apache Software Foundation, whose announcement rates it Low and credits 'Matteo Panzeri (Universita di Pavia), GitHub @matte1782' as finder alongside Jarek Potiuk as remediation developer. Apache's own CNA record carries no CVSS vector; a CISA-ADP enrichment separately adds CVSS v3.1 6.5 Medium. Fixed in 3.3.0.",
+      "id_label": "CVE-2026-49296",
+      "url": "https://www.cve.org/CVERecord?id=CVE-2026-49296",
+      "proof": {
+        "published": true,
+        "type": "pr_merged",
+        "repo": "apache/airflow",
+        "pr": 67662,
+        "cve": "CVE-2026-49296",
+        "cve_assigner": "apache",
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "merged": true,
+        "verified_at": "2026-08-01",
+        "note": "CVE-2026-49296 assigned by the Apache Software Foundation as CNA, PUBLISHED. The authoritative credit is the ASF announcement (lists.apache.org thread qqv41t3oydkn9o14r2rfz1wkdrsp5jzn) which states verbatim 'Severity: low' and 'Credit: Matteo Panzeri (Universita di Pavia), GitHub @matte1782 (finder)', and the CVE record carries the same credit. Badge is Low because that is the assigning CNA's own rating, per the page rule 'as the official advisory rates them'; the CNA container has no CVSS metrics, while a CISA-ADP enrichment adds v3.1 6.5 MEDIUM, which is disclosed in the row text so a reader clicking through to cve.org is not surprised. cvss_published is false: the CNA published no score, so NO numeric chip is rendered and the badge shows Apache's qualitative Low. The score field is set to 6.5, the CISA-ADP v3.1 value, for ORDERING ONLY; it is never displayed, matching how the Langroid row previously used a non-displayed score. The GitHub advisory GHSA-2vgv-x9xr-7gfj is NOT published (gh, github.com/advisories and OSV all return 404 as of 2026-08-01), so it is deliberately NOT linked. The only GitHub-checkable artifact is merged PR apache/airflow#67662, so proof type is pr_merged WITHOUT a credit field: that PR body carries no credit string, and asserting one would fail the --verify gate."
       }
     }
   ]
