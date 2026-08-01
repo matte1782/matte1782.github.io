@@ -267,7 +267,7 @@
         <span class="id">GHSA-7qjx <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://github.com/langroid/langroid/security/advisories/GHSA-2pq5-3q89-j7cc" target="_blank" rel="noopener">
-        <span class="sev">Critical</span>
+        <span class="sev">Critical <span class="score">9.2</span></span>
         <span><span class="name">Langroid</span><span class="desc">Neo4jChatAgent runs LLM-generated Cypher with no validation: prompt-to-Cypher injection on the agent surface, config-conditional RCE. The query-validation fix shipped for SQLChatAgent (CVE-2026-25879) was never carried to the Neo4j path, so read_query / write_query executed the model's Cypher directly. Found by sibling-diff from that prior fix; sole reporter, and the 0.65.5 patch extended validation to Cypher and AQL. CVE-2026-55615, CVSS v4 9.2 Critical as rated by the advisory.</span></span>
         <span class="id">CVE-2026-55615 <span class="arrow">&#8599;</span></span>
       </a>
@@ -278,7 +278,7 @@
       </a>
       <a class="row" href="https://github.com/Q00/ouroboros/security/advisories/GHSA-jv2h-4p9v-wf5w" target="_blank" rel="noopener">
         <span class="sev">High</span>
-        <span><span class="name">ouroboros</span><span class="desc">Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist. An incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
+        <span><span class="name">ouroboros</span><span class="desc">Untrusted project .env (auto-loaded from the working directory) can still reach RCE via execution-routing keys omitted from the denylist — an incomplete fix of CVE-2026-47211, found by sibling-diff. Co-credited reporter (with hackkim). Fixed in ouroboros-ai 0.42.1 (keys added to _UNTRUSTED_ENV_DENYLIST + cwd auto-discovery removed). Severity self-assessed; the advisory carries no CVSS and no CVE.</span></span>
         <span class="id">GHSA-jv2h <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h" target="_blank" rel="noopener">
@@ -317,13 +317,13 @@
         <span class="id">CVE-2026-43890 <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://www.cve.org/CVERecord?id=CVE-2026-15829" target="_blank" rel="noopener">
-        <span class="sev">High</span>
-        <span><span class="name">Google MCP Toolbox</span><span class="desc">SQL injection and security-boundary bypass in the BigQuery forecast / analyze-contribution tools of Google's MCP Toolbox, allowing the allowedDatasets scope to be escaped (CWE-89). CVE-2026-15829, CVSS 8.6 High, assigned by Google as CNA. Credited by full name in the CVE record. Fix merged as googleapis/mcp-toolbox PR #3324.</span></span>
+        <span class="sev">High <span class="score">8.6</span></span>
+        <span><span class="name">Google MCP Toolbox</span><span class="desc">SQL injection and security-boundary bypass allowing the allowedDatasets scope to be escaped (CWE-89, CWE-863). CVE-2026-15829, CVSS v4 8.6 High, assigned by Google as CNA, which credits 'Matteo Panzeri (Universita di Pavia), GitHub @matte1782' as finder. The CVE record scopes itself to the prebuilt bigquery-forecast tool; the merged fix, googleapis/mcp-toolbox PR #3324, covers both the forecast and analyze-contribution tools.</span></span>
         <span class="id">CVE-2026-15829 <span class="arrow">&#8599;</span></span>
       </a>
       <a class="row" href="https://www.cve.org/CVERecord?id=CVE-2026-49296" target="_blank" rel="noopener">
         <span class="sev">Low</span>
-        <span><span class="name">Apache Airflow</span><span class="desc">Per-Dag read authorization bypass (CWE-863): a user authorized to read one Dag could disclose the source of other Dags co-located in the same source file, because <code>GET /api/v2/dagSources/{dag_id}</code> and the equivalent UI view returned the whole file without redacting Dags the caller could not read. CVE-2026-49296, assigned by the Apache Software Foundation as CNA; credited by full name in the CVE record, alongside remediation developer Jarek Potiuk. Apache rates it Low and the record carries no CVSS vector. Fixed in 3.3.0.</span></span>
+        <span><span class="name">Apache Airflow</span><span class="desc">Per-Dag read authorization bypass (CWE-863): a user authorized to read one Dag could disclose the source of other Dags co-located in the same source file, because GET /api/v2/dagSources/{dag_id} and the equivalent UI view returned the whole file without redacting Dags the caller could not read. CVE-2026-49296, assigned by the Apache Software Foundation, whose announcement rates it Low and credits 'Matteo Panzeri (Universita di Pavia), GitHub @matte1782' as finder alongside Jarek Potiuk as remediation developer. Apache's own CNA record carries no CVSS vector; a CISA-ADP enrichment separately adds CVSS v3.1 6.5 Medium. Fixed in 3.3.0.</span></span>
         <span class="id">CVE-2026-49296 <span class="arrow">&#8599;</span></span>
       </a>
       <!-- DISCLOSURES:END -->
