@@ -3,6 +3,26 @@
   "_embargo_rule": "proof.published must be backed by a LIVE state check at publish time (repo security-advisory state==published, OR presence in the GitHub global advisory DB), NEVER a stored string. Findings still in private coordination are intentionally NOT listed here until their advisory or credit actually publishes.",
   "findings": [
     {
+      "name": "Appsmith",
+      "severity_label": "Critical",
+      "score": "9.6",
+      "desc": "Cross-tenant datasource execution via missing authorization (CWE-862): datasource authorization was not enforced during action validation, so an action in a public application could execute against a datasource owned by another workspace, running queries with that datasource's stored credentials. The attacker needs no membership in the victim workspace and the visitors who trigger it need not be authenticated. Affects Community, Enterprise and Cloud; fixed in 2.3. One of three credited reporters. GHSA-fhgw-q2jf-8fq7.",
+      "id_label": "GHSA-fhgw-q2jf-8fq7",
+      "url": "https://github.com/appsmithorg/appsmith/security/advisories/GHSA-fhgw-q2jf-8fq7",
+      "proof": {
+        "published": true,
+        "type": "repo_advisory",
+        "repo": "appsmithorg/appsmith",
+        "ghsa": "GHSA-fhgw-q2jf-8fq7",
+        "cve": null,
+        "in_global_db": false,
+        "cve_in_global_db": false,
+        "repo_state": "published",
+        "verified_at": "2026-09-18",
+        "note": "Repo advisory published 2026-09-14T19:57:17Z, critical, CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:N score 9.6 read from the advisory rather than computed, CWE-862. NO CVE assigned, so the id_label is the GHSA. THREE credited reporters, all type 'reporter': komyunghan, matte1782, nasaa0x -- this is NOT a sole credit and must not be claimed as one. Appsmith is not a supported package ecosystem, so the advisory is absent from the GitHub global advisory DB and `gh api advisories/GHSA-fhgw-q2jf-8fq7` returns 404 while the finding is fully public; verification must use the per-repo security-advisories endpoint. Supersedes GHSA-rqp9-r5fr-4cc8, which was closed in favour of this one."
+      }
+    },
+    {
       "name": "Open WebUI",
       "severity_label": "High",
       "score": "8.5",
