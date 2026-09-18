@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>When execution forgets who granted it: a critical cross-tenant authorization bug in Appsmith, and the shape behind it &middot; Matteo Panzeri</title>
+<meta name="description" content="A critical advisory in Appsmith (GHSA-fhgw-q2jf-8fq7, CVSS 9.6, CWE-862): datasource authorization was not enforced during action validation, so an action in a public application could execute against another workspace's datasource with its stored credentials. Co-credited with two other reporters. The write-up is about the recurring shape - a capability bound at one moment, executed at another, with nobody re-asking in between - and why low-code builders, agent tool-dispatch and connector layers widen that gap by design." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  .note{font-size:14.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  td.num{font-family:var(--mono)}
+  .caption{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 24px}
+
+  .aside{border:1px solid var(--line); border-left:2px solid var(--signal-soft); background:var(--panel); border-radius:8px; padding:22px 24px; margin:28px 0}
+  .aside .tag{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px}
+  .aside p{font-size:15.5px; color:#cbc8c0; margin:0 0 12px} .aside p:last-child{margin:0}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="who">Matteo Panzeri<span class="slash">/</span></span>
+    <a href="../../">&larr; index</a>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <p class="kicker">Notebook &middot; 2026-09-18</p>
+  <h1>When execution forgets who granted it</h1>
+  <p class="dek">A critical cross-tenant authorization bug in Appsmith, and a shape I keep meeting somewhere new.</p>
+  <p class="byline">Matteo Panzeri &middot; AI-for-security research</p>
+
+  <p class="note">Written with AI assistance. I am one of <strong>three</strong> credited reporters on this advisory, not the sole finder; the other two are @komyunghan and @nasaa0x. Everything below is drawn from the published advisory. No exploitation detail is added to it, and nothing here concerns any finding still in coordination.</p>
+
+  <p>Appsmith published a critical advisory on 14 September 2026. The bug is worth a paragraph. The shape behind it is worth the rest of this page.</p>
+
+  <h2>The finding</h2>
+  <p>An authenticated Appsmith user could make an action in a <strong>public</strong> application execute against a datasource belonging to <strong>another workspace</strong>, because datasource authorization was not enforced during action validation.</p>
+  <p>The consequences follow from that one omission. Queries run with the victim datasource&rsquo;s stored credentials. The attacker needs no membership in the victim workspace. The visitors who trigger the public application need not be authenticated at all. It affects Community, Enterprise and Cloud deployments, and requires no special server configuration.</p>
+  <p>Versions up to and including 2.2 are affected; 2.3 carries the fix. The advisory is <code>GHSA-fhgw-q2jf-8fq7</code>, classified <strong>CWE-862, Missing Authorization</strong>, with vector <code>CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:N</code> and a score of <strong>9.6</strong>. Note <code>S:C</code> &mdash; scope changed &mdash; which is the formal way of saying the damage lands outside the component that contained the flaw. No CVE has been assigned.</p>
+  <p>Full details, from the maintainers rather than from me: <a href="https://github.com/appsmithorg/appsmith/security/advisories/GHSA-fhgw-q2jf-8fq7" target="_blank" rel="noopener">GHSA-fhgw-q2jf-8fq7</a>.</p>
+
+  <h2>The shape</h2>
+  <p>Strip the product away and the defect reads like this:</p>
+  <p><strong>A resource is bound to a caller at one moment. It is executed at a different moment. Between those two moments, nobody re-asks whether this caller may still use this resource.</strong></p>
+  <p>Authorization was not missing from the system. Appsmith knows perfectly well which workspace owns a datasource, and enforces that elsewhere. What was missing was the check <em>on the path that actually executes</em>. The grant and the use had drifted apart, and only the grant was guarded.</p>
+  <p>That is why this class survives review. Read the permission model and it is coherent. Read the execution path and the question is simply never asked. The two readings do not contradict each other, so neither reader notices.</p>
+
+  <h2>Why it is becoming more common, not less</h2>
+  <p>The pattern needs one ingredient: <strong>a gap between binding a capability and invoking it.</strong> Older architectures had a small gap, because the request that checked your permission was usually the request that did the work.</p>
+  <p>Modern platforms have widened that gap enormously, and deliberately:</p>
+  <ul>
+    <li><strong>Low-code and internal-tool builders</strong> bind a datasource at design time and execute it at run time, often on behalf of someone who is not the person who bound it.</li>
+    <li><strong>Agent and tool-calling systems</strong> register a tool once and then dispatch it many times, from a context the registration never anticipated.</li>
+    <li><strong>Connector and integration layers</strong> hold long-lived credentials on a user&rsquo;s behalf and replay them later.</li>
+  </ul>
+  <p>Each of those is the same sentence with different nouns. The credential outlives the context that justified it, and the execution path has to re-derive an authorization decision that someone else made earlier, somewhere else. When it does not re-derive it, you get this bug.</p>
+
+  <h2>What I would check in your own system</h2>
+  <p>Not a methodology. Just the questions that are worth asking once:</p>
+  <ol>
+    <li><strong>List every place a stored credential is used.</strong> For each, name the line that decides the current caller may use it. If you cannot point at the line, that is the finding.</li>
+    <li><strong>Look for the word &ldquo;public&rdquo;.</strong> Public pages, public apps, public endpoints &mdash; anywhere the authenticated path and the anonymous path converge on the same executor.</li>
+    <li><strong>Separate validation from execution.</strong> If your code validates an action in one function and runs it in another, check that both consult the same authority. Validation-time checks that execution does not repeat are the classic form.</li>
+    <li><strong>Ask who the &ldquo;caller&rdquo; is at each hop.</strong> In systems with deferred execution, the identity at dispatch is frequently not the identity at request. Whichever one the authorization check reads, make sure it is the one that matters.</li>
+  </ol>
+  <p>None of that requires a scanner. It requires reading the execution path with the permission model held in your other hand, and noticing when they stop talking to each other.</p>
+
+  <h2>On the credit</h2>
+  <p>Three of us are credited as reporters: @komyunghan, myself, and @nasaa0x. I want to be exact about that, because independent discovery by several people is itself a fact about the bug &mdash; it means the shape is findable, which is the whole argument above.</p>
+  <p>Thanks to the Appsmith team for a clean disclosure process and a genuinely well-written advisory: it states the impact, names the affected deployments, gives workarounds, and tells operators what to audit after upgrading. That is more than most.</p>
+</article>
+</main>
+</body>
+</html>
