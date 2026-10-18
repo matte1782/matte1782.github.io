@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>From digital access to physical consequence · Matteo Panzeri</title>
+<meta name="description" content="How digital access becomes operational impact: an OT and IoT security review of privilege boundaries, process safeguards and evidence from published incidents." />
+<link rel="canonical" href="https://matte1782.github.io/writing/digital-access-physical-consequence/" />
+<meta name="author" content="Matteo Panzeri" />
+<meta name="keywords" content="OT cybersecurity, cyber-physical security, industrial control systems, IoT security, ICS security, remote access security" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="From digital access to physical consequence" />
+<meta property="og:description" content="How digital access becomes operational impact: an OT and IoT security review of privilege boundaries, process safeguards and evidence from published incidents." />
+<meta property="og:url" content="https://matte1782.github.io/writing/digital-access-physical-consequence/" />
+<meta property="og:site_name" content="Matteo Panzeri" />
+<meta property="og:locale" content="en_GB" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="From digital access to physical consequence" />
+<meta name="twitter:description" content="How digital access becomes operational impact: an OT and IoT security review of privilege boundaries, process safeguards and evidence from published incidents." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312110f'/%3E%3Cpath d='M5 21 L12 20 L16 22 L16 10 L24 11 L27 11' fill='none' stroke='%23e0a458' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../../assets/fonts/fonts.css" />
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "From digital access to physical consequence", "description": "How digital access becomes operational impact: an OT and IoT security review of privilege boundaries, process safeguards and evidence from published incidents.", "author": {"@type": "Person", "name": "Matteo Panzeri", "url": "https://matte1782.github.io/"}, "inLanguage": "en", "mainEntityOfPage": "https://matte1782.github.io/writing/digital-access-physical-consequence/", "articleSection": "Research review", "keywords": ["OT cybersecurity", "cyber-physical security", "industrial control systems", "IoT security", "ICS security", "remote access security", "industrial incident analysis"]}</script>
+<style>
+  :root{
+    --bg:#12110f; --bg2:#1a1815; --panel:#16140f;
+    --ink:#ece9e2; --dim:#9b968b; --faint:#6c685f;
+    --line:rgba(236,233,226,.10); --line2:rgba(236,233,226,.06);
+    --signal:#e0a458; --signal-soft:rgba(224,164,88,.16);
+    --ok:#9bb06a;
+    --serif:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  }
+  @view-transition{ navigation:auto }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.7; -webkit-font-smoothing:antialiased}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.45;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:64px 64px; mask-image:radial-gradient(circle at 50% 0%,#000,transparent 60%)}
+  a{color:var(--signal); text-decoration:none} a:hover{text-decoration:underline; text-underline-offset:3px}
+  ::selection{background:var(--signal-soft)}
+  .wrap{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:0 28px}
+
+  header{border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; max-width:720px; margin:0 auto; padding:16px 28px; font-family:var(--mono); font-size:13px}
+  .bar .who{color:var(--ink)} .bar .who .slash{color:var(--signal)}
+  .bar a{color:var(--dim)} .bar a:hover{color:var(--signal); text-decoration:none}
+
+  article{padding:64px 0 24px}
+  .kicker{font-family:var(--mono); font-size:12px; color:var(--signal); letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px}
+  h1{font-family:var(--serif); font-weight:380; font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.015em; margin:0 0 18px; view-transition-name:post-title}
+  .dek{font-size:20px; color:var(--dim); margin:0 0 24px; line-height:1.5}
+  .byline{font-family:var(--mono); font-size:12.5px; color:var(--faint); padding-bottom:30px; border-bottom:1px solid var(--line); margin-bottom:8px}
+
+  article h2{font-family:var(--mono); font-size:12.5px; color:var(--signal); letter-spacing:.12em; text-transform:uppercase; margin:46px 0 16px; display:flex; align-items:center; gap:12px}
+  article h2::before{content:""; width:20px; height:1px; background:var(--signal)}
+  article p{margin:0 0 20px; color:#d7d4cc}
+  article strong,article b{color:var(--ink); font-weight:600}
+  article em{font-style:italic; color:var(--ink)}
+  article ul{margin:0 0 20px; padding-left:0; list-style:none}
+  article li{position:relative; padding-left:22px; margin:0 0 10px; color:#cfccc4}
+  article li::before{content:""; position:absolute; left:4px; top:13px; width:6px; height:1px; background:var(--signal)}
+  code,.term{font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--bg2); padding:1px 6px; border-radius:4px; border:1px solid var(--line2)}
+  .note{font-size:14.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:15px}
+  th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim)}
+  thead th{font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase; font-weight:400}
+  td.num{font-family:var(--mono)}
+  .caption{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 24px}
+
+  .aside{border:1px solid var(--line); border-left:2px solid var(--signal-soft); background:var(--panel); border-radius:8px; padding:22px 24px; margin:28px 0}
+  .aside .tag{font-family:var(--mono); font-size:11.5px; color:var(--signal); letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px}
+  .aside p{font-size:15.5px; color:#cbc8c0; margin:0 0 12px} .aside p:last-child{margin:0}
+
+  .limits{border-left:2px solid var(--signal-soft); padding-left:20px}
+  .refs{font-size:14px; color:var(--dim); counter-reset:r}
+  .refs li{padding-left:30px}
+  .refs li::before{counter-increment:r; content:counter(r); left:0; top:2px; width:auto; height:auto; background:none; font-family:var(--mono); font-size:11px; color:var(--signal)}
+
+  footer{border-top:1px solid var(--line); margin-top:48px; padding:30px 0 64px; font-family:var(--mono); font-size:13px; color:var(--faint)}
+  footer a{color:var(--dim)} footer a:hover{color:var(--signal)}
+
+  @media (prefers-reduced-motion:no-preference){
+    article>*{animation:fade .5s both} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  }
+  @media (max-width:600px){
+    article{padding:52px 0 24px}
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:13.5px}
+    th,td{padding:9px 10px}
+    footer a{overflow-wrap:anywhere}
+  }
+
+  h2[id], li[id]{scroll-margin-top:24px}
+  h3{font-family:var(--serif);font-size:23px;font-weight:500}
+  a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--signal);outline-offset:5px}
+  article p a,article li a{text-decoration:underline;text-underline-offset:3px}
+  .byline{color:var(--dim)}
+  .contents{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:18px 20px;margin:28px 0;font-size:14px;line-height:2}
+  .contents p{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin:0;color:var(--dim)}
+  .chain-figure{margin:30px 0;padding:16px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+  .chain-figure img{width:100%;height:auto;display:block}
+  .chain-figure .chain-mobile{display:none}
+  figcaption,caption{font-size:13px;line-height:1.65;color:var(--dim);text-align:left}
+  figcaption{margin-top:16px}caption{padding-bottom:12px}
+  .table-scroll{overflow-x:auto;margin:22px 0;overscroll-behavior-x:contain}
+  .table-scroll table{min-width:520px;display:table;font-size:14px}
+  .table-scroll th,.table-scroll td{text-align:left;vertical-align:top;padding:12px 10px}
+  .table-scroll tbody th{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--ink);width:27%}
+  .table-scroll thead th{color:var(--dim)}
+  .refs{padding-left:0;list-style:none;overflow-wrap:anywhere}
+  .refs li{font-size:14px}
+  .skip{position:absolute;left:16px;top:-100px;background:var(--bg);padding:12px;z-index:10}
+  .skip:focus{top:10px}
+  @media(max-width:600px){
+    .wrap{padding:0 18px}.bar{padding:16px 18px;gap:20px}
+    .chain-figure{padding:10px}.chain-figure .chain-wide{display:none}.chain-figure .chain-mobile{display:block}
+    .contents{padding:14px 16px}h2{line-height:1.65}footer{overflow-wrap:anywhere}
+  }
+  @media print{body{background:white;color:black}body::before,.contents{display:none}article p,article li,article strong{color:black}a{color:inherit}figure,table{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#article">Skip to article</a>
+<header><div class="bar"><span class="who">Matteo Panzeri<span class="slash">/</span></span><a href="../../#writing">← writing</a></div></header>
+<main class="wrap"><article id="article">
+  <p class="kicker">Research review · <time datetime="2026-10-18">18 October 2026</time></p>
+  <h1>From digital access to physical consequence</h1>
+  <p class="dek">A review of OT and IoT incidents, and the evidence needed to connect a compromised account to a real process outcome.</p>
+  <p class="byline">Matteo Panzeri · OT / IoT security · Evidence review</p>
+  <p class="note">Written with AI assistance. I reviewed published incident reports, advisories and research disclosures; I did not investigate these incidents or test the equipment. Research cut-off: <time datetime="2026-10-18T15:43:00Z">18 October 2026, 17:43 Europe/Rome (CEST, UTC+02:00)</time>.</p>
+
+  <nav class="contents" aria-label="Article contents">
+    <p>In this article</p>
+    <a href="#refrigeration">The refrigeration incident</a> · <a href="#chain">The causal chain</a> · <a href="#cases">Comparative evidence</a> · <a href="#patterns">Recurring patterns</a> · <a href="#difficulty">What is easy?</a> · <a href="#barriers">Observed safeguards</a> · <a href="#ai">Automation and AI</a> · <a href="#scenarios">12-36 months</a> · <a href="#actions">Practical actions</a> · <a href="#conclusion">Conclusion</a> · <a href="#references">References</a>
+  </nav>
+
+  <h2 id="refrigeration">A refrigeration incident, with limits</h2>
+  <p>Retailers reported failed refrigeration and discarded stock at French supermarkets in October 2026. <a href="#ref-2" aria-label="Reference 2">[2]</a> The question I want to follow is what connected the compromise to those losses: the authority an intruder obtained, the equipment it reached, and the safeguards left in between.</p>
+  <p>Reporting places the initial wave overnight on 11-12 October. CERT-FR's alert, first issued on 12 October and updated on 16 October, confirms numerous compromises of Danfoss AK-SM and AK-SC remote controllers and also names Copeland and Dixell XWEB equipment. The alert does not identify the entry technique. <a href="#ref-1" aria-label="Reference 1">[1]</a></p>
+  <p>The physical-loss evidence needs attribution. TIME reports investigators' account of spoilage and quotes Monoprix saying it withdrew products whose storage conditions could no longer be guaranteed. It also reports competing store counts and retailers' financial estimates. Those are not an audited damage total. Its account describes 50 °C as a setting in forced defrost; it provides no instrument record identifying cabinet air, evaporator or product-core temperature. Treating that number as a verified food temperature would overstate the evidence. Alleged fires require separate confirmation. <a href="#ref-2" aria-label="Reference 2">[2]</a></p>
+  <p>The distinction between equipment generations matters. An AK-SM 800A is a supervisory system manager coordinating field devices; it is not the same thing as an individual case controller, nor interchangeable with the older AK-SM 800. Press reporting attributes the predominance of legacy AK-SM 800 and AK-SC 355 units to Danfoss; the public CERT alert names broader families, without a model-by-model incident inventory. <a href="#ref-3" aria-label="Reference 3">[3]</a> <a href="#ref-4" aria-label="Reference 4">[4]</a></p>
+  <p>Separately, CISA advisory ICSA-25-140-03 documents three AK-SM 8xxA vulnerabilities: CVE-2025-41450, authentication bypass, addressed in R4.2; and CVE-2025-41451 and CVE-2025-41452, post-authentication command injection and configuration-related denial of service, addressed in R4.3.1. <a href="#ref-5" aria-label="Reference 5">[5]</a> Claroty describes a date-derived authentication mechanism. <a href="#ref-4" aria-label="Reference 4">[4]</a> That demonstration is not evidence that this mechanism caused the French incident. Neither inspected primary source establishes that connection.</p>
+
+  <h2 id="chain">Access is only the first boundary</h2>
+  <p>A cyber-physical consequence requires a causal path from a digital action to a process outcome. Operational technology monitors or changes the physical environment; industrial control systems are one subset. A building-management platform, a refrigeration supervisor and a programmable logic controller occupy different roles, even when they share a web interface. <a href="#ref-6" aria-label="Reference 6">[6]</a></p>
+  <p>Start with the account. What can it change, on which equipment, and through which layer? Then follow an accepted command into the process: its current state, local limits, alarms and the time available for an operator to intervene. That is the chain I use below. A direct controller connection may skip the supervisor; an IT incident may interrupt operations before any process command is sent.</p>
+  <figure class="chain-figure" id="causal-diagram">
+    <img src="../../assets/cyber-physical-chain.svg" class="chain-wide" width="660" height="608" alt="Six stages from digital access to consequence, with a defensive boundary at each stage. Detailed sequence follows in the caption." />
+    <img src="../../assets/cyber-physical-chain-mobile.svg" class="chain-mobile" width="320" height="828" alt="Six stages from digital access to consequence, with a defensive boundary at each stage. Detailed sequence follows in the caption." />
+    <figcaption>Digital access → control privileges → supervisory layer → operational command → physical process → consequence. Boundaries: restricted remote access and authentication; segmentation and authorization; privileged session control; monitoring and command validation; process alarms and independent safeguards; recovery and incident response. Paths can enter, skip or stop at different stages.</figcaption>
+  </figure>
+  <p>A valid command can still be unsafe in context. Conversely, administrative access may permit reading reports without granting control over actuators. Even a write privilege does not establish a predictable effect: equipment state, local limits, thermal inertia and intervention time can change the outcome. A software proof establishes only the boundaries it actually crosses.</p>
+
+  <h2 id="cases">Cases, capabilities and disputed accounts</h2>
+  <p>The classifications below describe evidence, not severity. <strong>A</strong> means documented compromise with physical consequences; <strong>B</strong>, operational disruption without demonstrated physical damage; <strong>C</strong>, precautionary shutdown after an IT incident; <strong>D</strong>, vulnerability or laboratory demonstration without documented exploitation in the event discussed; <strong>E</strong>, an unverified or contested incident claim. Here A includes interrupted electrical supply or reported product loss. B describes a process shutdown without a separately documented physical-loss outcome. These editorial categories have imperfect boundaries; none implies destroyed machinery.</p>
+  <div class="table-scroll" role="region" aria-label="Incident evidence comparison" tabindex="0">
+  <table>
+    <caption>Keep the incident separate from the capability</caption>
+    <thead><tr><th scope="col">Case</th><th scope="col">Class</th><th scope="col">Supported outcome / limit</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">France, October 2026</th><td>A</td><td>Compromises confirmed; physical loss rests on attributed spoilage and stock-loss reporting, not an audited damage total. Entry vector and temperature measurement unresolved. [1-4]</td></tr>
+      <tr><th scope="row">Ukraine, December 2015</th><td>A</td><td>Electrical supply interrupted; source is an interview-based government assessment. [7]</td></tr>
+      <tr><th scope="row">TRITON / TRISIS, 2017</th><td>B</td><td>Safety-system compromise and process shutdown; no explosion demonstrated in the incident report. [8]</td></tr>
+      <tr><th scope="row">Colonial Pipeline, May 2021</th><td>C</td><td>IT ransomware followed by a proactive operational shutdown. [9]</td></tr>
+      <tr><th scope="row">AK-SM 800A research</th><td>D</td><td>Disclosed vulnerabilities; no established link to the French intrusion. [4-5]</td></tr>
+      <tr><th scope="row">Oldsmar, February 2021</th><td>E</td><td>Initial intrusion account contested by subsequent reporting. [10]</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>In Ukraine, the US interagency account of the 23 December 2015 attack describes remote breaker operation through existing administration tools or ICS clients, affecting approximately 225,000 customers. Companies believed legitimate credentials had been acquired. The report explicitly says investigators could not independently review technical evidence; their assessment relied on interviews and corroborating material. It also leaves BlackEnergy's precise role unresolved. "Malware directly switched off the grid" compresses several distinct facts into an unsupported mechanism. <a href="#ref-7" aria-label="Reference 7">[7]</a></p>
+  <p>TRITON targeted the protection system itself. Mandiant's 2017 response report describes an attacker reaching a safety-system engineering workstation and attempting to reprogram Triconex safety controllers. A validation failure between redundant processing units triggered a safe shutdown. Mandiant assessed, with moderate confidence, that the attacker was developing a physical-damage capability. An explosion is not demonstrated in that account. The observed shutdown and the inferred destructive objective must stay separate. <a href="#ref-8" aria-label="Reference 8">[8]</a></p>
+  <p>Colonial Pipeline followed a different path. DOE describes the 7 May 2021 halt as a proactive response to ransomware on the company's IT system. That is a serious operational consequence without evidence, in this account, of attacker commands to industrial controllers. Operational continuity depends on whether an organization can establish that continued operation is safe, as well as whether its controllers still run. <a href="#ref-9" aria-label="Reference 9">[9]</a></p>
+  <p>Oldsmar deserves a caution rather than a success story about an operator stopping an attacker. In 2023, ABC Action News reported an FBI spokesperson saying the investigation could not confirm a cyber intrusion. A former city manager argued for employee error; the sheriff's office said the investigation remained open. Neither the original remote-access narrative nor the competing explanation should be promoted to settled forensic fact. <a href="#ref-10" aria-label="Reference 10">[10]</a></p>
+
+  <h2 id="patterns">Recurring patterns and their limits</h2>
+  <p>Maintenance access exists because equipment needs maintaining. Removing it without a workable alternative can create its own operational problem. The questions I would ask are specific: which technician can reach which site, what authority survives after the job ends, and who can revoke it? The access service also needs secured endpoints and restricted permissions. A VPN answers only part of that. <a href="#ref-5" aria-label="Reference 5">[5]</a></p>
+  <p>A supervisory console can coordinate many devices. I would therefore examine its scope before counting individual vulnerable devices: what does this one account actually govern? Cross-site amplification depends on account scope, connectivity and configuration. The French record does not establish that one controller governed hundreds of stores, or that a maintenance provider was itself breached.</p>
+  <p>The commands deserve the same scrutiny. Breaker operations and maintenance schedules are useful because they change operations. Signature-based malware detection cannot, by itself, decide whether an otherwise valid change is appropriate. The missing context may be the equipment affected, change approval, timing, duration or whether an operator can independently observe the result.</p>
+  <p>Where security support has ended, "install the patch" may be impossible. Isolation, access mediation and planned replacement become practical alternatives. Supported equipment still needs authorization and configuration review. Patching a software defect cannot decide which technician should retain authority over which site.</p>
+
+  <h2 id="difficulty">What is actually easy?</h2>
+  <p>"Easy to attack" conceals several different workloads:</p>
+  <ul>
+    <li><strong>Discovery:</strong> recognizing a management interface may be cheap. It does not establish the installed version or reachable control functions.</li>
+    <li><strong>Access:</strong> depends on credentials, software flaws and configuration. An advisory is conditional evidence, not a list of compromised installations.</li>
+    <li><strong>Command execution:</strong> depends on the acquired role, controller mode and downstream authorization.</li>
+    <li><strong>Process knowledge:</strong> means understanding equipment relationships, operating state and protective behavior.</li>
+    <li><strong>Scaling:</strong> common interfaces can reduce repeated work; site differences and privilege boundaries can prevent it.</li>
+    <li><strong>Predictable effects:</strong> depend on process dynamics, the command's timing and duration, local protections, and the opportunity for intervention. A brief command can have lasting consequences.</li>
+  </ul>
+  <p>A service interruption may require little understanding of the service. Producing a particular physical effect reliably is a harder claim: the command must reach the intended equipment under conditions that permit that effect. I cannot assign a meaningful difficulty score from these public accounts. In TRITON, the attacker reached the safety system and the observed result was a safe shutdown.</p>
+
+  <h2 id="barriers">What the observed safeguards tell us</h2>
+  <p>TRITON's validation-triggered safe shutdown is an observed protective response. It does not prove that the installation was secure or that all destructive paths were blocked. Colonial's halt was an observed containment decision; the record does not measure what would have happened without it. These are narrower claims than "the defenses prevented a catastrophe."</p>
+  <p>The independent part matters. A second screen reading from the same compromised supervisor is a second presentation of the same evidence. An operator needs to know which measurements and protections remain trustworthy when that supervisor is untrusted. Independent process alarms, restricted programming modes and separation of safety from routine control are recommendations here, not explanations of the French outcome. Detection also needs a staffed response path and enough time to act. <a href="#ref-8" aria-label="Reference 8">[8]</a></p>
+
+  <h2 id="ai">Automation is not evidence of AI</h2>
+  <p>Conventional automation repeats discovery, checks or commands. An AI assistant can help a person interpret code or documentation. An autonomous research agent combines model decisions with tools in an experimental environment. Incident-level attribution requires evidence that such capabilities were actually used. Similar timing across victims is insufficient to identify any of these mechanisms.</p>
+  <p>Google's Big Sleep team reported an agent finding a previously unknown SQLite memory-safety vulnerability before release, with a patch-guided research setup. That is evidence of AI-assisted vulnerability research in software. It does not demonstrate autonomous manipulation of a physical plant or establish an increase in cyber-physical incidents. <a href="#ref-11" aria-label="Reference 11">[11]</a></p>
+  <p>No inspected incident-specific source establishes AI use in the French refrigeration attacks. That statement describes this review's evidence boundary, not proof of absence. Future claims need provenance: what model or agent did, what a person supplied, what succeeded experimentally, and what investigators observed in the actual intrusion.</p>
+
+  <h2 id="scenarios">What I would watch over the next 12-36 months</h2>
+  <p>These are low-confidence forecasts about published evidence. They are deliberately modest: one qualifying example would establish a capability or route, not an increase in attacks. No qualifying publication means the forecast fails; it does not mean the activity never happened. The review window ends in October 2029.</p>
+  <ul>
+    <li><strong>By October 2027:</strong> at least one new CERT or original responder report will document repeated abuse of the same supervisory-management function across several sites. Record only reports naming the function and confirming multiple sites; no qualifying report means this prediction fails.</li>
+    <li><strong>By October 2028:</strong> at least one original incident investigation will establish a maintenance-provider identity as the route into multiple customers' OT. Merely using a third-party maintenance tool does not qualify; no documented cross-customer identity path means failure.</li>
+    <li><strong>By October 2029:</strong> at least one original study will compare an AI research agent with a stated conventional baseline on embedded-controller software, validating findings independently on hardware or an equivalent executable environment. A demonstration without the baseline fails this prediction; it still would not establish AI use in an incident.</li>
+  </ul>
+
+  <h2 id="actions">What operators can verify now</h2>
+  <p>The following are proposed operating practices, not measured interventions in these cases. Agree access changes and fallback arrangements with the process owner before changing a maintenance path. Assign a named owner to each action and keep evidence of completion. A smaller operator can start with its existing asset register and maintenance contract; a multisite organization needs the same questions answered per site.</p>
+  <ul>
+    <li><strong>Map authority:</strong> record the exact model, generation, firmware, support status, remote-access path and responsible maintainer. Distinguish monitoring access from process-write and programming authority.</li>
+    <li><strong>Constrain access:</strong> remove direct public management exposure through an approved change; use restricted, strongly authenticated access with individual identities, defined site scope and an expiry or revocation process. Verify the configuration and a permitted maintenance session.</li>
+    <li><strong>Review changes:</strong> preserve relevant logs and compare accounts, schedules and operating configuration with a known approved baseline. Agree which changes require additional approval and who receives alerts.</li>
+    <li><strong>Verify the physical view:</strong> establish which independent measurements, local protections and staffed alarms remain available if the supervisor is untrusted. Exercise that response in a safe environment agreed by process engineers.</li>
+    <li><strong>Prepare restoration:</strong> maintain recoverable configuration and define safe manual operation, shutdown and restart responsibilities. Measure restoration in an approved exercise, including the maintainer and operational team.</li>
+  </ul>
+  <p>CERT-FR warns that resetting an exposed, unsupported device leaves it vulnerable to renewed compromise. Its current guidance also asks operators to consider contractual insurance conditions before interrupting maintenance-data reporting. Recovery therefore needs both technical closure and an agreed operational handover; a successful reboot is an inadequate completion criterion. <a href="#ref-1" aria-label="Reference 1">[1]</a></p>
+
+  <h2 id="conclusion">The consequence has to be explained</h2>
+  <p>Access, authority and consequence each need their own evidence. A reachable interface does not establish control. A successful command does not establish damage. A shutdown does not establish that the attacker touched a controller. Those distinctions changed which claims I could keep in this review.</p>
+  <p>For an operator, the questions follow: who can change this process, what limits that authority, which measurements remain trustworthy, and who can restore safe operation? Answering them takes security engineering, process knowledge and a maintenance team with clear responsibilities. That is the work I would prioritize from these cases.</p>
+
+  <aside class="aside" aria-label="Research method and limitations">
+    <p class="tag">Evidence limits</p>
+    <p>This is a purposive comparison, not a representative incident dataset or a causal experiment. Government alerts, original responders and research disclosures were preferred; media testimony is identified as such. The source draft's citation markers could not be mapped to URLs, so references were reconstructed. No devices were scanned, accessed or tested. Unconfirmed temperatures, damage totals, entry vectors and attribution remain unconfirmed.</p>
+  </aside>
+
+  <h2 id="references">References</h2>
+  <ol class="refs">
+    <li id="ref-1">CERT-FR / ANSSI. <a href="https://cert.cyber.gouv.fr/alerte/CERTFR-2026-ALE-012/">Incident de sécurité ciblant les contrôleurs à distance des installations de réfrigération</a>. CERTFR-2026-ALE-012, 12 October 2026; updated 16 October.</li>
+    <li id="ref-2">Miranda Jeyaretnam, TIME. <a href="https://time.com/article/2026/10/13/france-cyber-attack-cybersecurity-refrigeration-supermarket-food-security/">Cyberattack on Supermarket Fridges in France Highlights Food Systems' Vulnerability</a>. 13 October 2026; updated 14 October. Media reporting and attributed retailer statements.</li>
+    <li id="ref-3">The Hacker News. <a href="https://thehackernews.com/2026/10/attackers-heat-french-supermarket.html">Attackers Heat French Supermarket Fridges Up to 50°C by Hijacking Danfoss Controllers</a>. 13 October 2026. Secondary reporting of Danfoss statements; not an incident model inventory.</li>
+    <li id="ref-4">Amir Zaltzman, Claroty Team82. <a href="https://claroty.com/team82/research/freeze-the-controller-defrost-the-food-uncovering-vulnerabilities-in-danfoss-refrigeration-controllers">Freeze the Controller, Defrost the Food</a>. Page dated 9 August 2026. Original vulnerability research, distinct from the October incident.</li>
+    <li id="ref-5">CISA. <a href="https://www.cisa.gov/news-events/ics-advisories/icsa-25-140-03">Danfoss AK-SM 8xxA Series (Update A)</a>. ICSA-25-140-03, 20 May 2025; updated 26 August. Vendor references: <a href="https://www.danfoss.com/en/service-and-support/coordinated-vulnerability-disclosure/danfoss-security-advisories/dsa-2025-03-01/">DSA-2025-03-01</a> and <a href="https://www.danfoss.com/en/service-and-support/coordinated-vulnerability-disclosure/danfoss-security-advisories/dsa-2025-08-01/">DSA-2025-08-01</a> (vendor pages returned HTTP 403 during this review; fixes verified in CISA's full text).</li>
+    <li id="ref-6">NIST. <a href="https://csrc.nist.gov/pubs/sp/800/82/r3/final">SP 800-82 Rev. 3: Guide to Operational Technology (OT) Security</a>. September 2023. Terminology and engineering context; Revision 4 was a public draft at the cut-off.</li>
+    <li id="ref-7">NCCIC / ICS-CERT, hosted by CISA. <a href="https://www.cisa.gov/news-events/ics-alerts/ir-alert-h-16-056-01">Cyber-Attack Against Ukrainian Critical Infrastructure</a>. IR-ALERT-H-16-056-01, 25 February 2016. Interview-based assessment of the 23 December 2015 incident.</li>
+    <li id="ref-8">Blake Johnson et al., FireEye / Mandiant, now hosted by Google Cloud. <a href="https://cloud.google.com/blog/topics/threat-intelligence/attackers-deploy-new-ics-attack-framework-triton">Attackers Deploy New ICS Attack Framework "TRITON" and Cause Operational Disruption to Critical Infrastructure</a>. 14 December 2017. Original incident response report.</li>
+    <li id="ref-9">US Department of Energy, CESER. <a href="https://www.energy.gov/ceser/articles/ceser-2021-emergency-response-recap">CESER 2021 Emergency Response Recap</a>. 20 December 2021, section on the 7 May Colonial Pipeline incident.</li>
+    <li id="ref-10">Adam Walser, ABC Action News / WFTS. <a href="https://www.tampabay28.com/news/local-news/i-team-investigates/fbi-and-former-city-manager-say-oldsmar-cyberattack-never-happened">FBI and former city manager say Oldsmar cyberattack never happened</a>. 2023 follow-up; the inspected page did not expose an exact publication timestamp. Its quoted FBI position is narrower than its headline.</li>
+    <li id="ref-11">Google Project Zero / DeepMind, Big Sleep team. <a href="https://projectzero.google/2024/10/from-naptime-to-big-sleep.html?m=1">From Naptime to Big Sleep: Using Large Language Models To Catch Vulnerabilities In Real-World Code</a>. Page displays 1 November 2024; discovery reported in early October 2024.</li>
+  </ol>
+</article></main>
+<footer class="wrap"><a href="../../#writing">← all writing</a> · <a href="#article">Back to top</a> · <a href="https://github.com/matte1782">GitHub</a></footer>
+</body></html>

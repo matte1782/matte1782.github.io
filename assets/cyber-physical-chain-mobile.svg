@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="828" viewBox="0 0 320 828" role="img" aria-labelledby="title desc">
+<title id="title">From access to consequence: six possible stages and defensive boundaries</title>
+<desc id="desc">An analytical path, not a universal sequence. Each stage pairs with a defensive boundary. Direct access and operational decisions can bypass stages.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 1 L6 4 L0 7" fill="none" stroke="#e0a458" stroke-width="1.4"/></marker></defs>
+<rect width="320" height="828" rx="8" fill="#16140f"/>
+<g font-family="Arial, sans-serif">
+<rect x="8" y="16" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="43" fill="#e0a458" font-size="12">01</text>
+<text x="52" y="43" fill="#ece9e2" font-size="17">Digital access</text>
+<path d="M22 56H298" stroke="#5f5140"/>
+<text x="22" y="80" fill="#d7d4cc" font-size="16">Restricted remote access</text>
+<text x="22" y="101" fill="#d7d4cc" font-size="16">and authentication</text>
+<path d="M160 126v17" fill="none" stroke="#e0a458" marker-end="url(#arrow)"/>
+<rect x="8" y="150" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="177" fill="#e0a458" font-size="12">02</text>
+<text x="52" y="177" fill="#ece9e2" font-size="17">Control privileges</text>
+<path d="M22 190H298" stroke="#5f5140"/>
+<text x="22" y="214" fill="#d7d4cc" font-size="16">Segmentation</text>
+<text x="22" y="235" fill="#d7d4cc" font-size="16">and authorization</text>
+<path d="M160 260v17" fill="none" stroke="#e0a458" marker-end="url(#arrow)"/>
+<rect x="8" y="284" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="311" fill="#e0a458" font-size="12">03</text>
+<text x="52" y="311" fill="#ece9e2" font-size="17">Supervisory layer</text>
+<path d="M22 324H298" stroke="#5f5140"/>
+<text x="22" y="348" fill="#d7d4cc" font-size="16">Privileged session control</text>
+<text x="22" y="369" fill="#d7d4cc" font-size="16">and site scope</text>
+<path d="M160 394v17" fill="none" stroke="#e0a458" marker-end="url(#arrow)"/>
+<rect x="8" y="418" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="445" fill="#e0a458" font-size="12">04</text>
+<text x="52" y="445" fill="#ece9e2" font-size="17">Operational command</text>
+<path d="M22 458H298" stroke="#5f5140"/>
+<text x="22" y="482" fill="#d7d4cc" font-size="16">Monitoring</text>
+<text x="22" y="503" fill="#d7d4cc" font-size="16">and command validation</text>
+<path d="M160 528v17" fill="none" stroke="#e0a458" marker-end="url(#arrow)"/>
+<rect x="8" y="552" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="579" fill="#e0a458" font-size="12">05</text>
+<text x="52" y="579" fill="#ece9e2" font-size="17">Physical process</text>
+<path d="M22 592H298" stroke="#5f5140"/>
+<text x="22" y="616" fill="#d7d4cc" font-size="16">Process alarms</text>
+<text x="22" y="637" fill="#d7d4cc" font-size="16">and independent safeguards</text>
+<path d="M160 662v17" fill="none" stroke="#e0a458" marker-end="url(#arrow)"/>
+<rect x="8" y="686" width="304" height="106" rx="7" fill="#1a1815" stroke="#5f5140"/>
+<text x="22" y="713" fill="#e0a458" font-size="12">06</text>
+<text x="52" y="713" fill="#ece9e2" font-size="17">Consequence</text>
+<path d="M22 726H298" stroke="#5f5140"/>
+<text x="22" y="750" fill="#d7d4cc" font-size="16">Recovery</text>
+<text x="22" y="771" fill="#d7d4cc" font-size="16">and incident response</text>
+</g></svg>
